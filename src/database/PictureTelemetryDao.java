@@ -16,7 +16,7 @@ public class PictureTelemetryDao {
 
 	private Connection connection = null;;
 	PreparedStatement addMonitoredArea, addMonitoredAreaNameOnly, addDataSet, addPicture, addTelemetry,
-	getMonitoredAreaId;
+	getMonitoredAreaId, getDataSetId, getPictureId;
 	
 	protected PictureTelemetryDao() {
 		try {
@@ -28,12 +28,19 @@ public class PictureTelemetryDao {
 		
 		try {
 			connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/testdb","test", "12345");
+			
 			addMonitoredArea = connection.prepareStatement("INSERT INTO \"MonitoredArea\" (\"Name\", bounding_box, origin) "
 					+ "VALUES(?, ST_GeometryFromText(?), ST_GeographyFromText(?))");
+			
 //			addMonitoredAreaNameOnly = connection.prepareStatement("INSERT INTO \"MonitoredArea\" (\"Name\") VALUES(?)");
 			addMonitoredAreaNameOnly = connection.prepareStatement("IF NOT EXISTS (SELECT * FROM \"MonitoredArea\" WHERE \"Name\" = ?)"
-					+ "BEGIN INSERT INTO \"MonitoredArea\" (\"Name\") VALUES(?) END");
+					+ "BEGIN INSERT INTO \"MonitoredArea\" (\"Name\") VALUES(?) END"); //!TODO vyzkouset
+			
 			getMonitoredAreaId = connection.prepareStatement("SELECT id from \"MonitoredArea\" WHERE \"Name\" = ?");
+			
+			addDataSet = connection.prepareStatement("INSERT INTO \"DataSet\" (\"dir_path\", monitored_area_id) VALUES(?, ?) RETURNING id");
+			
+			addPicture = connection.prepareStatement("INSERT INTO \"Picture\" (\"file_path\", data_set_id) VALUES(?, ?)");
 			
 //			addDataSet = connection.prepareStatement("");
 //			addPicture = connection.prepareStatement("");
@@ -76,18 +83,38 @@ public class PictureTelemetryDao {
 			if (!rs.next()) {
 				throw new Exception("Error occured while adding or retreiving MonitoredArea from the database with name: " + name);
 			}
-			return rs.getInt(0);
+			return rs.getInt(1);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		throw new Exception("Adding MonitoredAread failed.");
 	}
 	
-	public void addDataSet(String monitoredAreaName, String directoryPath) {
-		
+	public int addDataSet(int monitoredAreaid, String directoryPath) throws Exception {
+		try {
+			addDataSet.setString(1, directoryPath);
+			addDataSet.setInt(2, monitoredAreaid);
+			ResultSet rs = addDataSet.executeQuery();
+			if (!rs.next()) {
+				throw new Exception("Error occured while adding DataSet in the database: ");
+			}
+			return rs.getInt(1);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		throw new Exception("Adding DataSet failed.");
 	}
 	
 	public int addPicture(Integer dataSetId, String filePath) {
+		try {
+			addPicture.setString(1, filePath);
+			addPicture.setInt(2, dataSetId);
+			addPicture.executeUpdate();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		
 		return 0; // returns picture id
 	}

@@ -44,21 +44,14 @@ public class DirectoryPicturesLoader implements DataLoaderInterface {
 	public DirectoryPicturesLoader(String monitoredAreaName, String directoryPath){
 		this.directoryPath = directoryPath;
 		PictureTelemetryDao.getInstance();
-		int areaId;
+		int monitoredAreaId;
 		try {
-			areaId = dao.addMonitoredArea(monitoredAreaName);
+			monitoredAreaId = dao.addMonitoredArea(monitoredAreaName);
+			dataSetId = dao.addDataSet(monitoredAreaId, directoryPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		dao.addDataSet(monitoredAreaName, directoryPath);
-		// vytvorit dataSet
-	}
-	
-	/**
-	 * Iterates through files in a directory, finds image files and their corresponding telemetry files,
-	 * parses them and saves information in the database.
-	 */
-	public void processData(){
+		
 		File directory = new File(directoryPath);
 		File [] listOfFiles = directory.listFiles();
 		
@@ -67,6 +60,14 @@ public class DirectoryPicturesLoader implements DataLoaderInterface {
 				processImageFile(listOfFiles[i], listOfFiles);
 			}
 		}
+	}
+	
+	/**
+	 * Iterates through files in a directory, finds image files and their corresponding telemetry files,
+	 * parses them and saves information in the database.
+	 */
+	public void processData(){
+		
 	}
 	
 	private void processImageFile(File imageFile, File [] listOfFiles) {

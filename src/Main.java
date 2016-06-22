@@ -11,7 +11,13 @@ public class Main {
 //		DirectoryPicturesLoader parser = new DirectoryPicturesLoader("C:/Users/Milan/Google Drive/Škola/Magistr/Diplomka2/bkpImages/dvur");
 //		parser.processData();
 		PictureTelemetryDao dao = PictureTelemetryDao.getInstance();
-		dao.addMonitoredArea("Dvur", null, null);
+//		dao.addMonitoredArea("Dvur", null, null);
+		try {
+			System.out.println(dao.addDataSet(1, "Random String"));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		
 		
