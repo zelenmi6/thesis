@@ -77,7 +77,7 @@ public class DirectoryPicturesLoader implements DataLoaderInterface {
 				PictureTelemetry telemetry = parseTelemetryFile(telemetryFile);
 				int pictureId = dao.addPicture(dataSetId, imageFile.getPath());
 				dao.addTelemetry(pictureId, telemetry);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 //			System.out.println("Found: " + imageFile.getName() + " : " + telemetryFile.getName());

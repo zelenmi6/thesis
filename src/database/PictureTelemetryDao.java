@@ -17,6 +17,7 @@ public class PictureTelemetryDao {
 	private Connection connection = null;;
 	PreparedStatement addMonitoredArea, addMonitoredAreaNameOnly, addDataSet, addPicture, addTelemetry,
 	getMonitoredAreaId, getDataSetId, getPictureId;
+	PostGISStringBuilder sb = new PostGISStringBuilder();
 	
 	protected PictureTelemetryDao() {
 		try {
@@ -29,22 +30,21 @@ public class PictureTelemetryDao {
 		try {
 			connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/testdb","test", "12345");
 			
-			addMonitoredArea = connection.prepareStatement("INSERT INTO \"MonitoredArea\" (\"Name\", bounding_box, origin) "
+			addMonitoredArea = connection.prepareStatement("INSERT INTO \"MonitoredArea\" (\"name\", bounding_box, origin) "
 					+ "VALUES(?, ST_GeometryFromText(?), ST_GeographyFromText(?))");
 			
 //			addMonitoredAreaNameOnly = connection.prepareStatement("INSERT INTO \"MonitoredArea\" (\"Name\") VALUES(?)");
-			addMonitoredAreaNameOnly = connection.prepareStatement("IF NOT EXISTS (SELECT * FROM \"MonitoredArea\" WHERE \"Name\" = ?)"
-					+ "BEGIN INSERT INTO \"MonitoredArea\" (\"Name\") VALUES(?) END"); //!TODO vyzkouset
+			addMonitoredAreaNameOnly = connection.prepareStatement("IF NOT EXISTS (SELECT * FROM \"MonitoredArea\" WHERE \"name\" = ?)"
+					+ "BEGIN INSERT INTO \"MonitoredArea\" (\"name\") VALUES(?) END"); //!TODO vyzkouset
 			
-			getMonitoredAreaId = connection.prepareStatement("SELECT id from \"MonitoredArea\" WHERE \"Name\" = ?");
+			getMonitoredAreaId = connection.prepareStatement("SELECT id from \"MonitoredArea\" WHERE \"name\" = ?");
 			
 			addDataSet = connection.prepareStatement("INSERT INTO \"DataSet\" (\"dir_path\", monitored_area_id) VALUES(?, ?) RETURNING id");
 			
-			addPicture = connection.prepareStatement("INSERT INTO \"Picture\" (\"file_path\", data_set_id) VALUES(?, ?)");
+			addPicture = connection.prepareStatement("INSERT INTO \"Picture\" (\"file_path\", data_set_id) VALUES(?, ?) RETURNING id");
 			
-//			addDataSet = connection.prepareStatement("");
-//			addPicture = connection.prepareStatement("");
-//			addTelemetry = connection.prepareStatement("");
+			//!TODO ST_Makepoint je rychlejsi a udajne presnejsi
+			addTelemetry = connection.prepareStatement("INSERT INTO \"Telemetry\" (coordinates, heading, roll, pitch, picture_id) VALUES(ST_GeometryFromText(?), ?, ?, ?, ?)");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -105,11 +105,15 @@ public class PictureTelemetryDao {
 		throw new Exception("Adding DataSet failed.");
 	}
 	
-	public int addPicture(Integer dataSetId, String filePath) {
+	public int addPicture(Integer dataSetId, String filePath) throws Exception {
 		try {
 			addPicture.setString(1, filePath);
 			addPicture.setInt(2, dataSetId);
-			addPicture.executeUpdate();
+			ResultSet rs = addPicture.executeQuery();
+			if (!rs.next()) {
+				throw new Exception("Error occured while adding Picture in the database: ");
+			}
+			return rs.getInt(1);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -120,7 +124,17 @@ public class PictureTelemetryDao {
 	}
 	
 	public void addTelemetry(int pictureId, PictureTelemetry telemetry) {
-		
+		try {
+			addTelemetry.setString(1, sb.pointGeometry3D(telemetry));
+			addTelemetry.setDouble(2, telemetry.heading);
+			addTelemetry.setDouble(3, telemetry.roll);
+			addTelemetry.setDouble(4, telemetry.pitch);
+			addTelemetry.setInt(5, pictureId);
+			addTelemetry.executeUpdate();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void getMonitoredArea() {
