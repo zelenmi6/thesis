@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Users/Milan/Google Drive/Škola/Magistr/Diplomka2/JavaPrograms/lib/vecmath-1.5.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Milan/Google Drive/Škola/Magistr/Diplomka2/JavaPrograms/lib/postgresql-9.4.1208.jre6.jar"/>
+	<classpathentry kind="lib" path="lib/postgresql-9.4.1208.jre6.jar"/>
+	<classpathentry kind="lib" path="lib/vecmath-1.5.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

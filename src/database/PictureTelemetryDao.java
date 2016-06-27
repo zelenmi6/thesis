@@ -10,6 +10,7 @@ import javax.vecmath.Vector3d;
 
 import loaders.PictureTelemetry;
 
+//!TODO osetrit, kdyz se pokusim nacist duplicitni data
 public class PictureTelemetryDao {
 	
 	private static PictureTelemetryDao instance = null;
@@ -28,14 +29,14 @@ public class PictureTelemetryDao {
 		}
 		
 		try {
-			connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/testdb","test", "12345");
+			connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/testdb","test", "asd54asd24asd897");
 			
 			addMonitoredArea = connection.prepareStatement("INSERT INTO \"MonitoredArea\" (\"name\", bounding_box, origin) "
 					+ "VALUES(?, ST_GeometryFromText(?), ST_GeographyFromText(?))");
 			
 //			addMonitoredAreaNameOnly = connection.prepareStatement("INSERT INTO \"MonitoredArea\" (\"Name\") VALUES(?)");
-			addMonitoredAreaNameOnly = connection.prepareStatement("IF NOT EXISTS (SELECT * FROM \"MonitoredArea\" WHERE \"name\" = ?)"
-					+ "BEGIN INSERT INTO \"MonitoredArea\" (\"name\") VALUES(?) END"); //!TODO vyzkouset
+			addMonitoredAreaNameOnly = connection.prepareStatement("INSERT INTO \"MonitoredArea\" (\"name\") SELECT (?) "
+					+ "WHERE NOT EXISTS ( SELECT \"name\" FROM \"MonitoredArea\" WHERE \"name\" = ? )"); //!TODO vyzkouset
 			
 			getMonitoredAreaId = connection.prepareStatement("SELECT id from \"MonitoredArea\" WHERE \"name\" = ?");
 			

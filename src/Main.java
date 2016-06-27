@@ -1,6 +1,7 @@
 import javax.vecmath.Vector3d;
 
 import database.PictureTelemetryDao;
+import geometry.CameraCalculator;
 import loaders.DirectoryPicturesLoader;
 import loaders.PictureTelemetry;
 
@@ -11,18 +12,16 @@ public class Main {
 		
 		System.out.println("Running program");
 		
-//		DirectoryPicturesLoader parser = new DirectoryPicturesLoader("C:/Users/Milan/Google Drive/Škola/Magistr/Diplomka2/bkpImages/dvur");
-//		parser.processData();
-		PictureTelemetryDao dao = PictureTelemetryDao.getInstance();
-//		dao.addMonitoredArea("Dvur", null, null);
-		try {
-//			System.out.println(dao.addDataSet(1, "Random String"));
-//			dao.addPicture(1, "random string");
-			dao.addTelemetry(1, new PictureTelemetry(new Vector3d(1, 2, 3), 180, 0, 0));
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		DirectoryPicturesLoader parser = new DirectoryPicturesLoader("Dvur, ", "C:/Users/Milan/Google Drive/Škola/Magistr/Diplomka2/bkpImages/dvurSmall");
+//		DirectoryPicturesLoader parser = new DirectoryPicturesLoader("Invalidovna, ", "C:/Users/Milan/Google Drive/Škola/Magistr/Diplomka2/bkpImages/invalidovna");
+//		PictureTelemetryDao dao = PictureTelemetryDao.getInstance();
+		
+		final double altitude = 8;
+		final double angle = 0;
+		final double FOV = 94;
+		
+		System.out.println(CameraCalculator.droneToBottomDist(altitude, FOV, angle));
+		System.out.println(CameraCalculator.droneToTopDist(altitude, FOV, angle));
 		
 		
 		

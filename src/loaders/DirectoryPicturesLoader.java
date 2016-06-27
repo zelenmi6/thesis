@@ -92,7 +92,7 @@ public class DirectoryPicturesLoader implements DataLoaderInterface {
 				return telemetryFile;
 			}
 		}
-		throw new FileNotFoundException("");
+		throw new FileNotFoundException("Telemetry file not found, name of picture: " + imageFile.getName());
 	}
 	
 	private boolean isImage(File file) {
