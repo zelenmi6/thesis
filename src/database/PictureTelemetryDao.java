@@ -29,6 +29,7 @@ public class PictureTelemetryDao {
 		}
 		
 		try {
+			//!TODO dodelat zabezpeceni
 			connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/testdb","test", "asd54asd24asd897");
 			
 			addMonitoredArea = connection.prepareStatement("INSERT INTO \"MonitoredArea\" (\"name\", bounding_box, origin) "
