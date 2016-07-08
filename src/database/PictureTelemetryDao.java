@@ -24,7 +24,6 @@ public class PictureTelemetryDao {
 		try {
 			Class.forName("org.postgresql.Driver");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -41,9 +40,9 @@ public class PictureTelemetryDao {
 			
 			getMonitoredAreaId = connection.prepareStatement("SELECT id from \"MonitoredArea\" WHERE \"name\" = ?");
 			
-			addDataSet = connection.prepareStatement("INSERT INTO \"DataSet\" (\"dir_path\", monitored_area_id) VALUES(?, ?) RETURNING id");
+			addDataSet = connection.prepareStatement("INSERT INTO \"DataSet\" (\"dir_path\", monitored_area_id, \"FOVv\", \"FOVh\") VALUES(?, ?, ?, ?) RETURNING id");
 			
-			addPicture = connection.prepareStatement("INSERT INTO \"Picture\" (\"file_path\", data_set_id) VALUES(?, ?) RETURNING id");
+			addPicture = connection.prepareStatement("INSERT INTO \"Picture\" (\"file_path\", data_set_id, bounding_box) VALUES(?, ?, ST_GeometryFromText(?)) RETURNING id");
 			
 			//!TODO ST_Makepoint je rychlejsi a udajne presnejsi
 			addTelemetry = connection.prepareStatement("INSERT INTO \"Telemetry\" (coordinates, heading, roll, pitch, picture_id) VALUES(ST_GeometryFromText(?), ?, ?, ?, ?)");
@@ -92,10 +91,12 @@ public class PictureTelemetryDao {
 		throw new Exception("Adding MonitoredAread failed.");
 	}
 	
-	public int addDataSet(int monitoredAreaid, String directoryPath) throws Exception {
+	public int addDataSet(int monitoredAreaid, String directoryPath, double FOVv, double FOVh) throws Exception {
 		try {
 			addDataSet.setString(1, directoryPath);
 			addDataSet.setInt(2, monitoredAreaid);
+			addDataSet.setDouble(3, FOVv);
+			addDataSet.setDouble(4, FOVh);
 			ResultSet rs = addDataSet.executeQuery();
 			if (!rs.next()) {
 				throw new Exception("Error occured while adding DataSet in the database: ");
@@ -107,10 +108,18 @@ public class PictureTelemetryDao {
 		throw new Exception("Adding DataSet failed.");
 	}
 	
-	public int addPicture(Integer dataSetId, String filePath) throws Exception {
+	public int addPicture(Integer dataSetId, String filePath, Vector3d [] boundingBox) throws Exception {
 		try {
+			StringBuilder sb = new StringBuilder(100);
+			sb.append("POLYGON((").append(boundingBox[0].x).append(" ").append(boundingBox[0].y).append(", ")
+			.append(boundingBox[1].x).append(" ").append(boundingBox[1].y).append(", ")
+			.append(boundingBox[2].x).append(" ").append(boundingBox[2].y).append(", ")
+			.append(boundingBox[3].x).append(" ").append(boundingBox[3].y).append(", ")
+			.append(boundingBox[0].x).append(" ").append(boundingBox[0].y)
+			.append("))");
 			addPicture.setString(1, filePath);
 			addPicture.setInt(2, dataSetId);
+			addPicture.setString(3, sb.toString());
 			ResultSet rs = addPicture.executeQuery();
 			if (!rs.next()) {
 				throw new Exception("Error occured while adding Picture in the database: ");

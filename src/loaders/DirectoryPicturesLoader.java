@@ -15,6 +15,7 @@ import javax.vecmath.GVector;
 import javax.vecmath.Vector3d;
 
 import database.PictureTelemetryDao;
+import geometry.CameraCalculator;
 
 /**
  * @author Milan
@@ -30,6 +31,8 @@ public class DirectoryPicturesLoader implements DataLoaderInterface {
 	private final String TELEMETRY_FILE_EXTENSION = "log";
 	
 	private String directoryPath = null;
+	private Double FOVv = null;
+	private Double FOVh = null;
 	private Integer dataSetId = null;
 	private Vector3d origin = null;
 	private GMatrix rotationMatrix = null;
@@ -41,13 +44,15 @@ public class DirectoryPicturesLoader implements DataLoaderInterface {
 	 * 
 	 * @param directoryPath
 	 */
-	public DirectoryPicturesLoader(String monitoredAreaName, String directoryPath){
+	public DirectoryPicturesLoader(String monitoredAreaName, String directoryPath, double FOVv, double FOVh){
 		this.directoryPath = directoryPath;
+		this.FOVv = FOVv;
+		this.FOVh = FOVh;
 		PictureTelemetryDao.getInstance();
 		int monitoredAreaId;
 		try {
 			monitoredAreaId = dao.addMonitoredArea(monitoredAreaName);
-			dataSetId = dao.addDataSet(monitoredAreaId, directoryPath);
+			dataSetId = dao.addDataSet(monitoredAreaId, directoryPath, FOVv, FOVh);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -75,7 +80,8 @@ public class DirectoryPicturesLoader implements DataLoaderInterface {
 			File telemetryFile = findTelemetryFile(imageFile, listOfFiles);
 			try {
 				PictureTelemetry telemetry = parseTelemetryFile(telemetryFile);
-				int pictureId = dao.addPicture(dataSetId, imageFile.getPath());
+				Vector3d [] boundingBox = getBoundingBox(telemetry);
+				int pictureId = dao.addPicture(dataSetId, imageFile.getPath(), boundingBox);
 				dao.addTelemetry(pictureId, telemetry);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -84,6 +90,19 @@ public class DirectoryPicturesLoader implements DataLoaderInterface {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private Vector3d [] getBoundingBox(PictureTelemetry telemetry) {
+		Vector3d [] polygon = CameraCalculator.getBoundingPolygon(FOVh, FOVv, 
+				telemetry.coordinates.z, telemetry.heading, telemetry.roll, telemetry.pitch);
+//		System.out.println("UAV: " + telemetry.coordinates.x+ ", " + telemetry.coordinates.y + "," + telemetry.coordinates.z);
+		for (Vector3d point : polygon) {
+			CameraCalculator.translate3dPointOnGround(point, telemetry.coordinates);
+//			System.out.println(point.toString());
+		}
+//		System.out.println("-----------------");
+		
+		return polygon;
 	}
 	
 	private File findTelemetryFile(File imageFile, File [] listOfFiles) throws FileNotFoundException {
@@ -138,7 +157,8 @@ public class DirectoryPicturesLoader implements DataLoaderInterface {
 		double pitch = Double.parseDouble(tokens[5].split(":")[1]);
 		
 		if (origin == null) {
-			calculateRotationMatrixAndVector(lon, lat, alt);
+//			!TODO Z coordinate of the origin is 0 and the AUV's altitude!
+			calculateRotationMatrixAndVector(lon, lat, 0);
 //			origin = hw.utils.GeographyUtils.fromGPStoCart(lon, lat, alt, rotationMatrix, translationVector);
 		}
 		
