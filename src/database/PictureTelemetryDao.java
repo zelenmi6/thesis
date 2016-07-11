@@ -5,6 +5,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.vecmath.Vector3d;
 
@@ -17,7 +19,7 @@ public class PictureTelemetryDao {
 
 	private Connection connection = null;;
 	PreparedStatement addMonitoredArea, addMonitoredAreaNameOnly, addDataSet, addPicture, addTelemetry,
-	getMonitoredAreaId, getDataSetId, getPictureId;
+	getMonitoredAreaId, getDataSetId, getPictureId, deleteMonitoredArea, getIdContainingPoint;
 	PostGISStringBuilder sb = new PostGISStringBuilder();
 	
 	protected PictureTelemetryDao() {
@@ -46,6 +48,10 @@ public class PictureTelemetryDao {
 			
 			//!TODO ST_Makepoint je rychlejsi a udajne presnejsi
 			addTelemetry = connection.prepareStatement("INSERT INTO \"Telemetry\" (coordinates, heading, roll, pitch, picture_id) VALUES(ST_GeometryFromText(?), ?, ?, ?, ?)");
+		
+			deleteMonitoredArea = connection.prepareStatement("DELETE FROM \"MonitoredArea\" WHERE id = ?");
+			
+			getIdContainingPoint = connection.prepareStatement("select id, ST_AsText(bounding_box) from \"Picture\" WHERE ST_CONTAINS(\"bounding_box\", ST_GeometryFromText(?))");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -163,4 +169,62 @@ public class PictureTelemetryDao {
 	public void getTelemetry() {
 		
 	}
+	
+	public void deleteMonitoredArea(int id) {
+		try {
+			deleteMonitoredArea.setInt(1, id);
+			deleteMonitoredArea.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public List<Integer> getIdContainingPoint(double x, double y) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("POINT(").append(x).append(" ").append(y).append(")");
+		
+		try {
+			getIdContainingPoint.setString(1, sb.toString());
+			ResultSet rs = getIdContainingPoint.executeQuery();
+			if (!rs.next()) {
+				return null;
+			}
+			List<Integer> pictureIdList = new ArrayList<Integer>();
+			do {
+				pictureIdList.add(rs.getInt(1));
+			} while(rs.next());
+			
+			return pictureIdList;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
