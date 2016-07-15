@@ -1,0 +1,4 @@
+OpenCV - opencv_java300.dll saved in system32 with its path to the PATH variable 
+(might be also possible to save it somewhere else - subject to testing)
+Then add dependencies in eclipse along with the native libraries.
+Also it is necessary to save the opencv\build\x64\vc12\bin derectory to the PATH variable 

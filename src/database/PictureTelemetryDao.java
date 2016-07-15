@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.vecmath.Vector2d;
 import javax.vecmath.Vector3d;
 
 import loaders.PictureTelemetry;
@@ -19,8 +20,8 @@ public class PictureTelemetryDao {
 
 	private Connection connection = null;;
 	PreparedStatement addMonitoredArea, addMonitoredAreaNameOnly, addDataSet, addPicture, addTelemetry,
-	getMonitoredAreaId, getDataSetId, getPictureId, deleteMonitoredArea, getIdContainingPoint;
-	PostGISStringBuilder sb = new PostGISStringBuilder();
+	getMonitoredAreaId, getDataSetId, getPictureId, deleteMonitoredArea, getIdContainingPoint, liesWithin;
+	PostGISStringBuilder postgisBuilder = new PostGISStringBuilder();
 	
 	protected PictureTelemetryDao() {
 		try {
@@ -51,7 +52,9 @@ public class PictureTelemetryDao {
 		
 			deleteMonitoredArea = connection.prepareStatement("DELETE FROM \"MonitoredArea\" WHERE id = ?");
 			
-			getIdContainingPoint = connection.prepareStatement("select id, ST_AsText(bounding_box) from \"Picture\" WHERE ST_CONTAINS(\"bounding_box\", ST_GeometryFromText(?))");
+			getIdContainingPoint = connection.prepareStatement("SELECT id, ST_AsText(bounding_box) from \"Picture\" WHERE ST_CONTAINS(\"bounding_box\", ST_GeometryFromText(?))");
+			
+			liesWithin = connection.prepareStatement("");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -142,7 +145,7 @@ public class PictureTelemetryDao {
 	
 	public void addTelemetry(int pictureId, PictureTelemetry telemetry) {
 		try {
-			addTelemetry.setString(1, sb.pointGeometry3D(telemetry));
+			addTelemetry.setString(1, postgisBuilder.pointGeometry3D(telemetry));
 			addTelemetry.setDouble(2, telemetry.heading);
 			addTelemetry.setDouble(3, telemetry.roll);
 			addTelemetry.setDouble(4, telemetry.pitch);
@@ -152,22 +155,6 @@ public class PictureTelemetryDao {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-	
-	public void getMonitoredArea() {
-		
-	}
-	
-	public void getDataSet() {
-		
-	}
-	
-	public void getPicture() {
-		
-	}
-	
-	public void getTelemetry() {
-		
 	}
 	
 	public void deleteMonitoredArea(int id) {
@@ -200,6 +187,11 @@ public class PictureTelemetryDao {
 			return null;
 		}
 	}
+	
+	public boolean liesWithin(Vector2d [] triangle, Vector2d trapezoid) {
+		return false;
+	}
+	
 }
 
 
