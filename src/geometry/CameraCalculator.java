@@ -21,7 +21,7 @@ public class CameraCalculator {
 	 * @return Array with 4 points defining a polygon
 	 */
 	public static Vector3d [] getBoundingPolygon(double FOVh, double FOVv, double altitude,
-			double heading, double roll, double pitch) {
+			double roll, double pitch, double heading) {
 		Vector3d ray1 = CameraCalculator.ray1(FOVh, FOVv);
 		Vector3d ray2 = CameraCalculator.ray2(FOVh, FOVv);
 		Vector3d ray3 = CameraCalculator.ray3(FOVh, FOVv);
@@ -63,15 +63,15 @@ public class CameraCalculator {
 	}
 	
 	public static Vector3d ray2(double FOVh, double FOVv) {
-		return new Vector3d(-Math.tan(FOVv/2), Math.tan(FOVh/2), -1);
-	}
-	
-	public static Vector3d ray3(double FOVh, double FOVv) {
 		return new Vector3d(Math.tan(FOVv/2), -Math.tan(FOVh/2), -1);
 	}
 	
-	public static Vector3d ray4(double FOVh, double FOVv) {
+	public static Vector3d ray3(double FOVh, double FOVv) {
 		return new Vector3d(-Math.tan(FOVv/2), -Math.tan(FOVh/2), -1);
+	}
+	
+	public static Vector3d ray4(double FOVh, double FOVv) {
+		return new Vector3d(-Math.tan(FOVv/2), Math.tan(FOVh/2), -1);
 	}
 	
 	public static void printDirections(Vector3d ray1,Vector3d ray2, Vector3d ray3, Vector3d ray4) {
@@ -89,12 +89,12 @@ public class CameraCalculator {
 	}
 	
 	public static Vector3d[] rotateRays(Vector3d ray1,Vector3d ray2, Vector3d ray3, Vector3d ray4, double roll, double pitch, double yaw) {
-		double sinAlpha = Math.sin(roll);
+		double sinAlpha = Math.sin(yaw);
 		double sinBeta = Math.sin(pitch);
-		double sinGamma = Math.sin(yaw);
-		double cosAlpha = Math.cos(roll);
+		double sinGamma = Math.sin(roll);
+		double cosAlpha = Math.cos(yaw);
 		double cosBeta = Math.cos(pitch);
-		double cosGamma = Math.cos(yaw);
+		double cosGamma = Math.cos(roll);
 		double m00 = cosAlpha * cosBeta;
 		double m01 = cosAlpha * sinBeta * sinGamma - sinAlpha * cosGamma;
 		double m02 = cosAlpha * sinBeta * cosGamma + sinAlpha * sinGamma;
@@ -117,7 +117,7 @@ public class CameraCalculator {
 		Matrix res3 = rotationMatrix.times(ray3Matrix);
 		Matrix res4 = rotationMatrix.times(ray4Matrix);
 		
-		System.out.println();
+//		System.out.println();
 		// x, y, z
 //		System.out.println("(" + res1.get(0, 0) + ", " + res1.get(1, 0) + ", " + res1.get(2, 0) + ")");
 //		System.out.println("(" + res2.get(0, 0) + ", " + res2.get(1, 0) + ", " + res2.get(2, 0) + ")");

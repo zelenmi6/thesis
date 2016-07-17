@@ -1,20 +1,22 @@
-import java.io.File;
+import javax.swing.JFrame;
 
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.videoio.VideoCapture;
-
-import video.Imshow;
-import video.OpenCVGrabber;
+import visualizer.Visualizer;
 
 public class Main {
 	
 	public static void main(String[] args) throws InterruptedException {
-
+		
+		Visualizer v = new Visualizer();
+		JFrame frame = new JFrame("Visualizer");
+		frame.setContentPane(v);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.pack();
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
 
 		
-		OpenCVGrabber grabber = new OpenCVGrabber("C:/JavaPrograms/thesis/resources/input/SampleVideo_1280x720_5mb.flv",
-				"C:/JavaPrograms/thesis/resources/output/");
+//		OpenCVGrabber grabber = new OpenCVGrabber("C:/JavaPrograms/thesis/resources/input/SampleVideo_1280x720_5mb.flv",
+//				"C:/JavaPrograms/thesis/resources/output/");
 
 		// PictureTelemetryDao dao = PictureTelemetryDao.getInstance();
 		// Vector3d a = new Vector3d(0, 0, 0);
@@ -106,7 +108,7 @@ public class Main {
 		// System.out.println("Right: " +
 		// CameraCalculator.droneToRightDist(altitude, FOVHeight, angleY));
 
-		System.out.println("Program has finished");
+//		System.out.println("Program has finished");
 	}
 
 }
