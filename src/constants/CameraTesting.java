@@ -8,4 +8,5 @@ public class CameraTesting {
 	public final static double FOVh = Math.toRadians(64.4);
 	public final static double FOVv = Math.toRadians(37.2);
 	public final static double ZOOM = 10;
+	public final static double POINT_SIZE = 7;
 }

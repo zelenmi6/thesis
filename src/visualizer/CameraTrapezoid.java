@@ -4,9 +4,11 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 
 import javax.swing.JPanel;
@@ -22,7 +24,7 @@ public class CameraTrapezoid extends JPanel implements MouseMotionListener {
 	}
 	
 	public enum Option {
-		
+		BOUNDING_POLYGON
 	}
 	
 	private int mouseX, mouseY;
@@ -51,10 +53,12 @@ public class CameraTrapezoid extends JPanel implements MouseMotionListener {
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D) g;
+		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+	    g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 		setBackground(Color.WHITE);
 		g2.drawString("X: " + (translateXToCenter(mouseX) / zoom - xOffset) + " , Y: " + (translateYToCenter(mouseY) / zoom - yOffset), mouseX, mouseY);
 		drawAxes(g2);
-		paintTrapezoid(g2);
+		drawTrapezoid(g2);
 	}
 	
 	public void valueChanged(CameraParameter parameter, int value) {
@@ -130,35 +134,51 @@ public class CameraTrapezoid extends JPanel implements MouseMotionListener {
 		g2.draw(new Line2D.Double(0, windowHeight/2 + yOffset*zoom, windowWidth, windowHeight/2 + yOffset*zoom));
 	}
 	
-	private void paintTrapezoid(Graphics2D g2) {
+	private void drawTrapezoid(Graphics2D g2) {
 		Vector3d [] corners = CameraCalculator.getBoundingPolygon(CameraTesting.FOVh, CameraTesting.FOVv, altitude,
 				roll, pitch, heading);
 		offsetPoints(corners, xOffset, yOffset);
 		
+		
+		drawPoints(corners, g2);
 		drawLine(g2, corners[0], corners[1]);
 		drawLine(g2, corners[1], corners[2]);
 		drawLine(g2, corners[2], corners[3]);
 		drawLine(g2, corners[3], corners[0]);
 		
-//		g2.draw(new Line2D.Double(translateCenterToX(corners[0].x), translateCenterToY(corners[0].y),
-//				translateCenterToX(corners[1].x), translateCenterToY(corners[1].y)));
-//		g2.draw(new Line2D.Double(translateCenterToX(corners[1].x), translateCenterToY(corners[1].y),
-//				translateCenterToX(corners[2].x), translateCenterToY(corners[2].y)));
-//		g2.draw(new Line2D.Double(translateCenterToX(corners[2].x), translateCenterToY(corners[2].y),
-//				translateCenterToX(corners[3].x), translateCenterToY(corners[3].y)));
-//		g2.draw(new Line2D.Double(translateCenterToX(corners[3].x), translateCenterToY(corners[3].y),
-//				translateCenterToX(corners[0].x), translateCenterToY(corners[0].y)));
+		
 	}
 	private void drawLine(Graphics2D g2, Vector3d pointA, Vector3d pointB) {
-		g2.draw(new Line2D.Double(translateCenterToX(pointA.x * zoom), translateCenterToY(pointA.y * zoom),
-				translateCenterToX(pointB.x * zoom), translateCenterToY(pointB.y * zoom)));
+		g2.draw(new Line2D.Double(pointA.x, pointA.y,
+				pointB.x, pointB.y));
 	}
 	
 	private void offsetPoints(Vector3d [] points, double xOffset, double yOffset) {
 		for (Vector3d point : points) {
 			point.x += xOffset;
 			point.y += yOffset;
+			
+			point.x = translateCenterToX(point.x * zoom);
+			point.y = translateCenterToY(point.y * zoom);
 		}
+	}
+	
+	private void drawPoints(Vector3d [] corners, Graphics2D g2) {
+		int counter = 1;
+		for (Vector3d point : corners) {
+			Ellipse2D.Double pointToDraw = new Ellipse2D.Double(point.x - CameraTesting.POINT_SIZE/2,
+					point.y - CameraTesting.POINT_SIZE/2, CameraTesting.POINT_SIZE, CameraTesting.POINT_SIZE);
+			g2.setColor(Color.RED);
+			g2.fill(pointToDraw);
+			g2.setColor(Color.BLACK);
+			g2.drawString(Integer.toString(counter), (int)(point.x + CameraTesting.POINT_SIZE), 
+					(int)(point.y + CameraTesting.POINT_SIZE));
+			counter ++;
+		}
+	}
+	
+	public void optionChanged(Option option) {
+		System.out.println(option.toString());
 	}
 }
 

@@ -1,6 +1,7 @@
 package geometry;
 
 import javax.vecmath.Vector2d;
+import javax.vecmath.Vector3d;
 
 public class Calculations {
 	
@@ -56,4 +57,25 @@ public class Calculations {
 		return threeBiggestValuesIndexes(new double[]{oa, ob, oc, od});
 	}
 	
+	public static int [] threeFurthestPointsIndexes(Vector2d origin, Vector3d [] trapezoid) throws Exception {
+		Vector2d [] trapezoid2d = new Vector2d[trapezoid.length];
+		for (int i = 0; i < trapezoid.length; i ++) {
+			trapezoid2d[i].x = trapezoid[i].x;
+			trapezoid2d[i].y = trapezoid[i].y;
+		}
+		return threeFurthestPointsIndexes(origin, trapezoid2d);
+	}
+	
 }
+
+
+
+
+
+
+
+
+
+
+
+

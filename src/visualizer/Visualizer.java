@@ -15,6 +15,7 @@ import javax.swing.event.ChangeListener;
 
 import constants.CameraTesting;
 import visualizer.CameraTrapezoid.CameraParameter;
+import visualizer.CameraTrapezoid.Option;
 
 public class Visualizer extends JPanel implements MouseWheelListener {
 	
@@ -57,7 +58,13 @@ public class Visualizer extends JPanel implements MouseWheelListener {
 		JPanel panel = new JPanel();
 		panel.setLayout(new FlowLayout());
 		
+		panel.add(new OptionsItem(Option.BOUNDING_POLYGON, cameraTrapezoid));
+		
 		return panel;
+	}
+	
+	private void addOptions() {
+		
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent e) {
