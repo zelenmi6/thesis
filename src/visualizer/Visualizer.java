@@ -14,8 +14,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import constants.CameraTesting;
-import visualizer.CameraTrapezoid.CameraParameter;
-import visualizer.CameraTrapezoid.Option;
+import visualizer.CameraPolygon.CameraParameter;
+import visualizer.CameraPolygon.Option;
 
 public class Visualizer extends JPanel implements MouseWheelListener {
 	
@@ -26,39 +26,43 @@ public class Visualizer extends JPanel implements MouseWheelListener {
 	
 	
 	public Visualizer() {
-		CameraTrapezoid cameraTrapezoid = new CameraTrapezoid();
-		cameraTrapezoid.addMouseWheelListener(this);
+		CameraPolygon cameraPolygon = new CameraPolygon();
+		cameraPolygon.addMouseWheelListener(this);
 		setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
 		this.setLayout(new BorderLayout());
-		this.add(cameraTrapezoid, BorderLayout.CENTER);
-		zoomSlider = new SliderSet(CameraParameter.ZOOM, CameraTesting.ZOOM, -100, 100, SwingConstants.VERTICAL, cameraTrapezoid);
+		this.add(cameraPolygon, BorderLayout.CENTER);
+		zoomSlider = new SliderSet(CameraParameter.ZOOM, CameraTesting.ZOOM, -100, 100, SwingConstants.VERTICAL, cameraPolygon);
 		this.add(zoomSlider, BorderLayout.WEST);
-		this.add(addRollAltitudePanel(cameraTrapezoid), BorderLayout.EAST);
-		this.add(addHeadingPitchPanel(cameraTrapezoid), BorderLayout.SOUTH);
-		this.add(addOptionsBar(cameraTrapezoid), BorderLayout.NORTH);
+		this.add(addRollAltitudePanel(cameraPolygon), BorderLayout.EAST);
+		this.add(addHeadingPitchPanel(cameraPolygon), BorderLayout.SOUTH);
+		this.add(addOptionsBar(cameraPolygon), BorderLayout.NORTH);
 	}
 	
-	private JPanel addRollAltitudePanel(CameraTrapezoid cameraTrapezoid) {
+	private JPanel addRollAltitudePanel(CameraPolygon cameraPolygon) {
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridLayout(1, 2));
-		panel.add(new SliderSet(CameraParameter.ALTITUDE, CameraTesting.ALTITUDE, 0, 100, SwingConstants.VERTICAL, cameraTrapezoid));
-		panel.add(new SliderSet(CameraParameter.ROLL, CameraTesting.ROLL, -180, 180, SwingConstants.VERTICAL, cameraTrapezoid));
+		panel.add(new SliderSet(CameraParameter.ALTITUDE, CameraTesting.ALTITUDE, 0, 100, SwingConstants.VERTICAL, cameraPolygon));
+		panel.add(new SliderSet(CameraParameter.ROLL, CameraTesting.ROLL, -180, 180, SwingConstants.VERTICAL, cameraPolygon));
 		return panel;
 	}
 	
-	private JPanel addHeadingPitchPanel(CameraTrapezoid cameraTrapezoid) {
+	private JPanel addHeadingPitchPanel(CameraPolygon cameraPolygon) {
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridLayout(2, 1));
-		panel.add(new SliderSet(CameraParameter.HEADING, CameraTesting.HEADING, -180, 180, SwingConstants.HORIZONTAL, cameraTrapezoid));
-		panel.add(new SliderSet(CameraParameter.PITCH, CameraTesting.PITCH, -180, 180, SwingConstants.HORIZONTAL, cameraTrapezoid));
+		panel.add(new SliderSet(CameraParameter.HEADING, CameraTesting.HEADING, -180, 180, SwingConstants.HORIZONTAL, cameraPolygon));
+		panel.add(new SliderSet(CameraParameter.PITCH, CameraTesting.PITCH, -180, 180, SwingConstants.HORIZONTAL, cameraPolygon));
 		return panel;
 	}
 	
-	private JPanel addOptionsBar(CameraTrapezoid cameraTrapezoid) {
+	private JPanel addOptionsBar(CameraPolygon cameraPolygon) {
 		JPanel panel = new JPanel();
 		panel.setLayout(new FlowLayout());
 		
-		panel.add(new OptionsItem(Option.BOUNDING_POLYGON, cameraTrapezoid));
+		panel.add(new OptionsItem(Option.BOUNDING_POLYGON, cameraPolygon));
+		panel.add(new OptionsItem(Option.ORIGIN_1, cameraPolygon));
+		panel.add(new OptionsItem(Option.ORIGIN_2, cameraPolygon));
+		panel.add(new OptionsItem(Option.ORIGIN_3, cameraPolygon));
+		panel.add(new OptionsItem(Option.ORIGIN_4, cameraPolygon));
 		
 		return panel;
 	}

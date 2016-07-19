@@ -11,19 +11,19 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import visualizer.CameraTrapezoid.CameraParameter;
+import visualizer.CameraPolygon.CameraParameter;
 
 public class SliderSet extends JPanel {
 	
 	private JLabel nameLabel, valueLabel;
-	private CameraTrapezoid cameraTrapezoid;
+	private CameraPolygon cameraPolygon;
 	private CameraParameter name;
 	
 	private JSlider slider;
 	
 	
 	public SliderSet(CameraParameter parameterType, double defaultValue, int minValue, int maxValue,
-			int orientation, CameraTrapezoid cameraTrapezoidParam) {
+			int orientation, CameraPolygon cameraPolygonParam) {
 		int sliderInitialValue = (int)defaultValue;
 		if (parameterType == CameraParameter.HEADING || 
 				parameterType == CameraParameter.ROLL || 
@@ -32,7 +32,7 @@ public class SliderSet extends JPanel {
 				}
 		
 		this.name = parameterType;
-		this.cameraTrapezoid = cameraTrapezoidParam;
+		this.cameraPolygon = cameraPolygonParam;
 		setLayout(new GridBagLayout());
 		
 		nameLabel = new JLabel(name.toString());
@@ -44,7 +44,7 @@ public class SliderSet extends JPanel {
 			public void stateChanged(ChangeEvent e) {
 				JSlider slider = (JSlider)e.getSource();
 				valueLabel.setText(Integer.toString(slider.getValue()));
-				cameraTrapezoid.valueChanged(name, slider.getValue());
+				cameraPolygon.valueChanged(name, slider.getValue());
 			}
 			
 		});

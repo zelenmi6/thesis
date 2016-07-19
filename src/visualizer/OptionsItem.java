@@ -8,17 +8,17 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import visualizer.CameraTrapezoid.Option;
+import visualizer.CameraPolygon.Option;
 
 public class OptionsItem extends JPanel implements ItemListener {
 	
 	Option type;
-	CameraTrapezoid cameraTrapezoid;
+	CameraPolygon cameraPolygon;
 	
-	public OptionsItem(Option optionType, CameraTrapezoid cameraTrapezoid) {
+	public OptionsItem(Option optionType, CameraPolygon cameraPolygon) {
 		setLayout(new GridLayout(1, 2));
 		type = optionType;
-		this.cameraTrapezoid = cameraTrapezoid;
+		this.cameraPolygon = cameraPolygon;
 		JLabel label = new JLabel(type.toString());
 		JCheckBox checkBox = new JCheckBox();
 		checkBox.addItemListener(this);
@@ -28,7 +28,7 @@ public class OptionsItem extends JPanel implements ItemListener {
 	}
 
 	public void itemStateChanged(ItemEvent e) {
-		cameraTrapezoid.optionChanged(type);
+		cameraPolygon.optionChanged(type);
 	}
 
 }
