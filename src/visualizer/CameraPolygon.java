@@ -161,6 +161,8 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 		
 		offsetPoints(corners, xOffset, yOffset);
 		
+		// If the camera is not within the polygon on the ground
+		// We have to add the are with potentional objects in the air
 		if(!cameraWithinPolygon && drawBoundingPolygon) {
 			drawBoundingPolygon(g2, corners, leftOutermost, rightOutermost);
 		}
