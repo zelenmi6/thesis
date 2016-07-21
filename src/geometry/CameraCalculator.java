@@ -5,6 +5,7 @@ import javax.vecmath.Vector2d;
 import javax.vecmath.Vector3d;
 
 import Jama.Matrix;
+import constants.CameraTesting;
 
 public class CameraCalculator {
 	
@@ -39,24 +40,49 @@ public class CameraCalculator {
 		Vector3d intersection3 = CameraCalculator.findVectorGroundIntersection(rotatedVectors[2], origin);
 		Vector3d intersection4 = CameraCalculator.findVectorGroundIntersection(rotatedVectors[3], origin);
 		
+//		// !TODO Zmenit cely flow metody!!! Zatim rychla testovaci verze
+//		if (quadrantChanged(rotatedVectors[0], intersection1)) {
+//			intersection1 = limitToQuadrantAndDistance(rotatedVectors[0]);
+//		}
+//		if (quadrantChanged(rotatedVectors[1], intersection2)) {
+//			intersection2 = limitToQuadrantAndDistance(rotatedVectors[1]);
+//		}
+//		if (quadrantChanged(rotatedVectors[2], intersection3)) {
+//			intersection3 = limitToQuadrantAndDistance(rotatedVectors[2]);
+//		}
+//		if (quadrantChanged(rotatedVectors[3], intersection4)) {
+//			intersection4 = limitToQuadrantAndDistance(rotatedVectors[3]);
+//		}
+//		
+//		intersection1 = limitDistanceOfIntersection(rotatedVectors[0], intersection1);
+//		intersection2 = limitDistanceOfIntersection(rotatedVectors[1], intersection2);
+//		intersection3 = limitDistanceOfIntersection(rotatedVectors[2], intersection3);
+//		intersection4 = limitDistanceOfIntersection(rotatedVectors[3], intersection4);
+		
 		return new Vector3d[]{intersection1, intersection2, intersection3, intersection4};
 	}
 	
-//	public static Vector3d ray1(double FOVh, double FOVv) {
-//		return new Vector3d(1, Math.tan(FOVh/2), Math.tan(FOVv/2));
-//	}
-//	
-//	public static Vector3d ray2(double FOVh, double FOVv) {
-//		return new Vector3d(1, -Math.tan(FOVh/2), Math.tan(FOVv/2));
-//	}
-//	
-//	public static Vector3d ray3(double FOVh, double FOVv) {
-//		return new Vector3d(1, Math.tan(FOVh/2), -Math.tan(FOVv/2));
-//	}
-//	
-//	public static Vector3d ray4(double FOVh, double FOVv) {
-//		return new Vector3d(-Math.tan(FOVh/2), -Math.tan(FOVv/2), -1);
-//	}
+	private static boolean quadrantChanged(Vector3d vector, Vector3d intersection) {
+		if (vector.x < 0 && intersection.x > 0)
+			return true;
+		if (vector.y < 0 && intersection.y > 0)
+			return true;
+		return false;
+	}
+	
+	//!TODO zmenit na metodu, co nevraci, ale meni parametr
+	// Muzu tohle udelat? Beru souradnice pouze vektoru v urcite jeho vzdalenosti.
+	private static Vector3d limitDistanceOfIntersection(Vector3d vector, Vector3d intersection) {
+		if (Calculations.distance3dPoints(new Vector3d(0, 0, 0), intersection) > CameraTesting.MAX_DISTANCE) {
+			return limitToQuadrantAndDistance(vector);
+		}
+		return vector;
+	}
+	
+	//!TODO prejmenovat
+	private static Vector3d limitToQuadrantAndDistance(Vector3d rotatedVector) {
+		return new Vector3d(rotatedVector.x * CameraTesting.MAX_DISTANCE, rotatedVector.y * CameraTesting.MAX_DISTANCE, 0);
+	}
 	
 	public static Vector3d ray1(double FOVh, double FOVv) {
 		return new Vector3d(Math.tan(FOVv/2), Math.tan(FOVh/2), -1);
@@ -117,23 +143,24 @@ public class CameraCalculator {
 		Matrix res3 = rotationMatrix.times(ray3Matrix);
 		Matrix res4 = rotationMatrix.times(ray4Matrix);
 		
-//		System.out.println();
-		// x, y, z
-//		System.out.println("(" + res1.get(0, 0) + ", " + res1.get(1, 0) + ", " + res1.get(2, 0) + ")");
-//		System.out.println("(" + res2.get(0, 0) + ", " + res2.get(1, 0) + ", " + res2.get(2, 0) + ")");
-//		System.out.println("(" + res3.get(0, 0) + ", " + res3.get(1, 0) + ", " + res3.get(2, 0) + ")");
-//		System.out.println("(" + res4.get(0, 0) + ", " + res4.get(1, 0) + ", " + res4.get(2, 0) + ")");
-//		System.out.println();
-		// x, z, y
-//		System.out.println("(" + res1.get(0, 0) + ", " + res1.get(2, 0) + ", " + res1.get(1, 0) + ")");
-//		System.out.println("(" + res2.get(0, 0) + ", " + res2.get(2, 0) + ", " + res2.get(1, 0) + ")");
-//		System.out.println("(" + res3.get(0, 0) + ", " + res3.get(2, 0) + ", " + res3.get(1, 0) + ")");
-//		System.out.println("(" + res4.get(0, 0) + ", " + res4.get(2, 0) + ", " + res4.get(1, 0) + ")");
+		Vector3d rotatedRay1 = new Vector3d(res1.get(0, 0), res1.get(1, 0), res1.get(2, 0));
+		Vector3d rotatedRay2 = new Vector3d(res2.get(0, 0), res2.get(1, 0), res2.get(2, 0));
+		Vector3d rotatedRay3 = new Vector3d(res3.get(0, 0), res3.get(1, 0), res3.get(2, 0));
+		Vector3d rotatedRay4 = new Vector3d(res4.get(0, 0), res4.get(1, 0), res4.get(2, 0));
+		Vector3d[] rayArray = new Vector3d[]{rotatedRay1, rotatedRay2, rotatedRay3, rotatedRay4};
 		
-		return new Vector3d[]{new Vector3d(res1.get(0, 0), res1.get(1, 0), res1.get(2, 0)),
-				new Vector3d(res2.get(0, 0), res2.get(1, 0), res2.get(2, 0)),
-				new Vector3d(res3.get(0, 0), res3.get(1, 0), res3.get(2, 0)),
-				new Vector3d(res4.get(0, 0), res4.get(1, 0), res4.get(2, 0))};
+//		angleAxisVector(rayArray);
+		
+		return rayArray;
+	}
+	
+	private static void angleAxisVector(Vector3d[] rayArray) {
+		double magnitude = 1;
+//		for (Vector3d ray : rayArray) {
+//			double side = ray.z;
+//			System.out.print(Math.toDegrees(Math.acos(side)) + ", ");
+//		}
+//		System.out.println(Math.toDegrees(Math.acos(Math.sqrt(1)/Math.sqrt(1))));
 	}
 	
 	public static Vector3d findVectorGroundIntersection(Vector3d vector, Vector3d origin) {
@@ -152,6 +179,21 @@ public class CameraCalculator {
 		
 		// Substitute t in the original parametric equations to get points of intersection
 		return new Vector3d(x.x + x.y * t, y.x + y.y * t, z.x + z.y * t);
+	}
+	
+	public static void findVectorVerticalPlaneIntersection(Vector3d vector, Vector3d origin) {
+		// Parametric form of an equation
+		// P = origin + vector * t
+		Vector2d x = new Vector2d(origin.x,vector.x);
+		Vector2d y = new Vector2d(origin.y,vector.y);
+		Vector2d z = new Vector2d(origin.z,vector.z);
+		
+		// Equation of the vertical plane perpendicular to the ground at distance given by a constant MAX_DISTANCE
+		// x - MAX_DISTANCE = 0
+		
+		// Calculate t by substituting x
+		double t = (CameraTesting.MAX_DISTANCE - x.x) / x.y;
+		System.out.println("x: " +( x.x + x.y * t )+ ", y:" +( y.x + y.y * t )+ ", z:" +( z.x + z.y * t));
 	}
 	
 	public static Trapezoid getTrapezoid(double altitude, double FOVh, double FOVv, double heading, double roll, double pitch) {

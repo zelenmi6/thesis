@@ -125,6 +125,10 @@ public class Calculations {
 		return Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
 	}
 	
+	public static Double distance3dPoints(Vector3d a, Vector3d b) {
+		return Math.sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y) + (b.z - a.z) * (b.z - a.z));
+	}
+	
 	/**
 	 * !TODO test
 	 * @param points
