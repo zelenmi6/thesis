@@ -27,77 +27,74 @@ public class CameraCalculator {
 		Vector3d ray2 = CameraCalculator.ray2(FOVh, FOVv);
 		Vector3d ray3 = CameraCalculator.ray3(FOVh, FOVv);
 		Vector3d ray4 = CameraCalculator.ray4(FOVh, FOVv);
-		ray1.normalize();
-		ray2.normalize();
-		ray3.normalize();
-		ray4.normalize();
 		
 		Vector3d [] rotatedVectors = CameraCalculator.rotateRays(
 				ray1, ray2, ray3, ray4, roll, pitch, heading);
+		
 		Vector3d origin = new Vector3d(0, 0, altitude);
-		Vector3d intersection1 = CameraCalculator.findVectorGroundIntersection(rotatedVectors[0], origin);
-		Vector3d intersection2 = CameraCalculator.findVectorGroundIntersection(rotatedVectors[1], origin);
-		Vector3d intersection3 = CameraCalculator.findVectorGroundIntersection(rotatedVectors[2], origin);
-		Vector3d intersection4 = CameraCalculator.findVectorGroundIntersection(rotatedVectors[3], origin);
+		Vector3d[] intersections = getRayGroundIntersections(rotatedVectors, altitude, origin);
+		limitRange(intersections, rotatedVectors, altitude, origin);
 		
-//		// !TODO Zmenit cely flow metody!!! Zatim rychla testovaci verze
-//		if (quadrantChanged(rotatedVectors[0], intersection1)) {
-//			intersection1 = limitToQuadrantAndDistance(rotatedVectors[0]);
-//		}
-//		if (quadrantChanged(rotatedVectors[1], intersection2)) {
-//			intersection2 = limitToQuadrantAndDistance(rotatedVectors[1]);
-//		}
-//		if (quadrantChanged(rotatedVectors[2], intersection3)) {
-//			intersection3 = limitToQuadrantAndDistance(rotatedVectors[2]);
-//		}
-//		if (quadrantChanged(rotatedVectors[3], intersection4)) {
-//			intersection4 = limitToQuadrantAndDistance(rotatedVectors[3]);
-//		}
-//		
-//		intersection1 = limitDistanceOfIntersection(rotatedVectors[0], intersection1);
-//		intersection2 = limitDistanceOfIntersection(rotatedVectors[1], intersection2);
-//		intersection3 = limitDistanceOfIntersection(rotatedVectors[2], intersection3);
-//		intersection4 = limitDistanceOfIntersection(rotatedVectors[3], intersection4);
-		
-		return new Vector3d[]{intersection1, intersection2, intersection3, intersection4};
+		return intersections;
+	}
+	
+	private static Vector3d [] getRayGroundIntersections(Vector3d [] rays, double altitude, Vector3d origin) {
+		Vector3d [] intersections = new Vector3d[rays.length];
+		for (int i = 0; i < rays.length; i ++) {
+			intersections[i] = CameraCalculator.findVectorGroundIntersection(rays[i], origin);
+		}
+		return intersections;
 	}
 	
 	private static boolean quadrantChanged(Vector3d vector, Vector3d intersection) {
-		if (vector.x < 0 && intersection.x > 0)
+		if (vector.x < 0 && intersection.x > 0 || vector.x > 0 && intersection.x < 0)
 			return true;
-		if (vector.y < 0 && intersection.y > 0)
+		if (vector.y < 0 && intersection.y > 0 || vector.y > 0 && intersection.y < 0)
 			return true;
 		return false;
 	}
 	
-	//!TODO zmenit na metodu, co nevraci, ale meni parametr
-	// Muzu tohle udelat? Beru souradnice pouze vektoru v urcite jeho vzdalenosti.
-	private static Vector3d limitDistanceOfIntersection(Vector3d vector, Vector3d intersection) {
-		if (Calculations.distance3dPoints(new Vector3d(0, 0, 0), intersection) > CameraTesting.MAX_DISTANCE) {
-			return limitToQuadrantAndDistance(vector);
+	private static void limitRange(Vector3d[] intersections, Vector3d [] rays, double altitude, Vector3d origin) {
+		for (int i = 0; i < intersections.length; i ++) {
+			if (quadrantChanged(rays[i], intersections[i])){
+				// if the ray is aiming over the horizont the quadrant of intersections changes
+				// that way we know we have to limit our range of view
+				limitDistanceOfView(intersections[i], rays[i]);
+			} else if (Calculations.distance3dPoints(origin, intersections[i]) > CameraTesting.MAX_DISTANCE) {
+				// if the range of view is too big we need to limit it
+				// !TODO Muzu tohle udelat? Beru souradnice pouze vektoru v urcite jeho vzdalenosti.
+				limitDistanceOfView(intersections[i], rays[i]);
+			}
 		}
-		return vector;
 	}
 	
-	//!TODO prejmenovat
-	private static Vector3d limitToQuadrantAndDistance(Vector3d rotatedVector) {
-		return new Vector3d(rotatedVector.x * CameraTesting.MAX_DISTANCE, rotatedVector.y * CameraTesting.MAX_DISTANCE, 0);
+	private static void limitDistanceOfView(Vector3d intersection, Vector3d rotatedVector) {
+		intersection.x = rotatedVector.x * CameraTesting.MAX_DISTANCE;
+		intersection.y = rotatedVector.y * CameraTesting.MAX_DISTANCE;
 	}
 	
 	public static Vector3d ray1(double FOVh, double FOVv) {
-		return new Vector3d(Math.tan(FOVv/2), Math.tan(FOVh/2), -1);
+		Vector3d ray = new Vector3d(Math.tan(FOVv/2), Math.tan(FOVh/2), -1);
+		ray.normalize();
+		return ray;
 	}
 	
 	public static Vector3d ray2(double FOVh, double FOVv) {
-		return new Vector3d(Math.tan(FOVv/2), -Math.tan(FOVh/2), -1);
+		Vector3d ray = new Vector3d(Math.tan(FOVv/2), -Math.tan(FOVh/2), -1);
+		ray.normalize();
+		return ray;
 	}
 	
 	public static Vector3d ray3(double FOVh, double FOVv) {
-		return new Vector3d(-Math.tan(FOVv/2), -Math.tan(FOVh/2), -1);
+		Vector3d ray = new Vector3d(-Math.tan(FOVv/2), -Math.tan(FOVh/2), -1);
+		ray.normalize();
+		return ray;
 	}
 	
 	public static Vector3d ray4(double FOVh, double FOVv) {
-		return new Vector3d(-Math.tan(FOVv/2), Math.tan(FOVh/2), -1);
+		Vector3d ray = new Vector3d(-Math.tan(FOVv/2), Math.tan(FOVh/2), -1);
+		ray.normalize();
+		return ray;
 	}
 	
 	public static void printDirections(Vector3d ray1,Vector3d ray2, Vector3d ray3, Vector3d ray4) {

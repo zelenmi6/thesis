@@ -21,6 +21,7 @@ import javax.vecmath.Vector3d;
 import constants.CameraTesting;
 import geometry.Calculations;
 import geometry.CameraCalculator;
+import geometry.ConvexHull;
 
 public class CameraPolygon extends JPanel implements MouseMotionListener {
 	
@@ -224,12 +225,7 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 	}
 	
 	private void drawOriginPointLine(Graphics2D g2, Vector3d[] points) {
-		double windowWidth = this.getSize().getWidth();
-		double windowHeight = this.getSize().getHeight();
-		double originX = windowWidth/2 + xOffset*zoom;
-		double originY = windowHeight/2 + yOffset*zoom;
-		origin.x = originX;
-		origin.y = originY;
+		centerOrigin();
 		
 		Stroke origStroke = g2.getStroke();
 		Stroke dashed = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
@@ -246,29 +242,21 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 	
 	private void drawBoundingPolygon(Graphics2D g2, Vector3d[] points, int leftOutermostIdx, int rightOutermostIdx) {
 		try {
-			double windowWidth = this.getSize().getWidth();
-			double windowHeight = this.getSize().getHeight();
-			double originX = windowWidth/2 + xOffset*zoom;
-			double originY = windowHeight/2 + yOffset*zoom;
-			origin.x = originX;
-			origin.y = originY;
+			centerOrigin();
+			
+			Vector3d[] pointArray = copyArrayAndPoint(points, origin); 
+			pointArray = ConvexHull.convex_hull(pointArray);
+			for (Vector3d point: pointArray)
+				System.out.println(point);
+			System.out.println("---------------------");
 			
 			g2.setColor(Color.RED);
 			Stroke origStroke = g2.getStroke();
 			g2.setStroke(new BasicStroke(5));
 			
-			for (int i = 0; i < points.length; i ++) {
-				int nextIdx = (i+1)%points.length;
-				if (i == leftOutermostIdx && nextIdx == rightOutermostIdx || i == rightOutermostIdx && nextIdx == leftOutermostIdx
-						|| Calculations.triangleContainsPoint(points[i], origin, points[leftOutermostIdx], points[rightOutermostIdx])
-						|| Calculations.triangleContainsPoint(points[nextIdx], origin, points[leftOutermostIdx], points[rightOutermostIdx])) {
-					continue;
-				}
-				drawLine(g2, points[i], points[nextIdx]);
+			for (int i = 0; i < pointArray.length; i ++) {
+				drawLine(g2, pointArray[i], pointArray[(i+1)%pointArray.length]);
 			}
-			drawLine(g2, origin, points[leftOutermostIdx]);
-			drawLine(g2, origin, points[rightOutermostIdx]);
-			
 			
 			g2.setColor(Color.BLACK);
 			g2.setStroke(origStroke);
@@ -277,6 +265,33 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Copies the contents of one array along with another vector into a new array
+	 * @param array Array to be copied
+	 * @param point Vector to be added to the new array
+	 * @return New array with elements from the original array and the new one
+	 */
+	private Vector3d [] copyArrayAndPoint(Vector3d [] array, Vector3d point) {
+		Vector3d [] newArray = new Vector3d[array.length+1];
+		for (int i = 0; i < array.length; i ++) {
+			newArray[i] = new Vector3d(array[i]);
+		}
+		newArray[array.length] = new Vector3d(point);
+		return newArray;
+	}
+	
+	/**
+	 * Sets the coordinates of the origin object to where the x and y axes should cross
+	 */
+	private void centerOrigin() {
+		double windowWidth = this.getSize().getWidth();
+		double windowHeight = this.getSize().getHeight();
+		double originX = windowWidth/2 + xOffset*zoom;
+		double originY = windowHeight/2 + yOffset*zoom;
+		origin.x = originX;
+		origin.y = originY;
 	}
 	
 }
