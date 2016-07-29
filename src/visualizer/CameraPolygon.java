@@ -246,9 +246,9 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 			
 			Vector3d[] pointArray = copyArrayAndPoint(points, origin); 
 			pointArray = ConvexHull.convex_hull(pointArray);
-			for (Vector3d point: pointArray)
-				System.out.println(point);
-			System.out.println("---------------------");
+//			for (Vector3d point: pointArray)
+//				System.out.println(point);
+//			System.out.println("---------------------");
 			
 			g2.setColor(Color.RED);
 			Stroke origStroke = g2.getStroke();

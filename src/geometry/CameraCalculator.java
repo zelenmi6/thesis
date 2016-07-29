@@ -35,13 +35,15 @@ public class CameraCalculator {
 		Vector3d[] intersections = getRayGroundIntersections(rotatedVectors, altitude, origin);
 		limitRange(intersections, rotatedVectors, altitude, origin);
 		
+		findRaysVerticalPlaneIntersection(rotatedVectors, origin, new Vector3d(-10, 0, 8));
+		
 		return intersections;
 	}
 	
 	private static Vector3d [] getRayGroundIntersections(Vector3d [] rays, double altitude, Vector3d origin) {
 		Vector3d [] intersections = new Vector3d[rays.length];
 		for (int i = 0; i < rays.length; i ++) {
-			intersections[i] = CameraCalculator.findVectorGroundIntersection(rays[i], origin);
+			intersections[i] = CameraCalculator.findRayGroundIntersection(rays[i], origin);
 		}
 		return intersections;
 	}
@@ -146,27 +148,16 @@ public class CameraCalculator {
 		Vector3d rotatedRay4 = new Vector3d(res4.get(0, 0), res4.get(1, 0), res4.get(2, 0));
 		Vector3d[] rayArray = new Vector3d[]{rotatedRay1, rotatedRay2, rotatedRay3, rotatedRay4};
 		
-//		angleAxisVector(rayArray);
-		
 		return rayArray;
 	}
 	
-	private static void angleAxisVector(Vector3d[] rayArray) {
-		double magnitude = 1;
-//		for (Vector3d ray : rayArray) {
-//			double side = ray.z;
-//			System.out.print(Math.toDegrees(Math.acos(side)) + ", ");
-//		}
-//		System.out.println(Math.toDegrees(Math.acos(Math.sqrt(1)/Math.sqrt(1))));
-	}
-	
-	public static Vector3d findVectorGroundIntersection(Vector3d vector, Vector3d origin) {
+	public static Vector3d findRayGroundIntersection(Vector3d ray, Vector3d origin) {
 		
 		// Parametric form of an equation
 		// P = origin + vector * t
-		Vector2d x = new Vector2d(origin.x,vector.x);
-		Vector2d y = new Vector2d(origin.y,vector.y);
-		Vector2d z = new Vector2d(origin.z,vector.z);
+		Vector2d x = new Vector2d(origin.x,ray.x);
+		Vector2d y = new Vector2d(origin.y,ray.y);
+		Vector2d z = new Vector2d(origin.z,ray.z);
 		
 		// Equation of the horizontal plane (ground)
 		// -z = 0
@@ -176,6 +167,44 @@ public class CameraCalculator {
 		
 		// Substitute t in the original parametric equations to get points of intersection
 		return new Vector3d(x.x + x.y * t, y.x + y.y * t, z.x + z.y * t);
+	}
+	
+	/**
+	 * Calculates points of intersection of camera rays and a plane perpendicular to vector (origin, pointOfInterest)
+	 * passing through pointOfInterest.
+	 * @param rays Camera rays
+	 * @param origin Camera position
+	 * @param pointOfInterest Point that we are querying whether it lies in the camera's field of view
+	 * @return Array containing points of intersection of camera rays and a plane perpendicular to vector (origin, pointOfInterest)
+	 * passing through pointOfInterest.
+	 */
+	public static Vector3d[] findRaysVerticalPlaneIntersection(Vector3d[] rays, Vector3d origin, Vector3d pointOfInterest) {
+		Vector3d [] intersections = new Vector3d[rays.length];
+		// Find the equation of the plane ax + by + cz = d;
+		// 
+		//!TODO dela se takhle vektor??
+		Vector3d plane = new Vector3d(pointOfInterest.x - origin.x, pointOfInterest.y - origin.y, pointOfInterest.z - origin.z);
+		double d = pointOfInterest.x * plane.x + pointOfInterest.y * plane.y + pointOfInterest.z * plane.z;
+		
+		for (int i = 0; i < rays.length; i ++) {
+			// Parametric form of an equation
+			// P = origin + vector * t
+			// Vectors can be preallocated but code readability is decreased.
+			Vector2d x = new Vector2d(origin.x,rays[i].x);
+			Vector2d y = new Vector2d(origin.y,rays[i].y);
+			Vector2d z = new Vector2d(origin.z,rays[i].z);
+			// Solve equation for t
+			// plane.x * x.x + plane.x * x.y * t + plane.y * y.x * plane.y * y.y * t + plane.z * z.x + plane.z * z.y * t = d;
+			double expressionWithoutT = plane.x * x.x + plane.y * y.x + plane.z * z.x;
+			double expressionWithT = plane.x * x.y + plane.y * y.y + plane.z * z.y;
+			double t = (expressionWithoutT - d) / -expressionWithT;
+			intersections[i] = new Vector3d(x.x + x.y * t, y.x + y.y * t, z.x + z.y * t);
+		}
+		for (Vector3d intersection : intersections) {
+			System.out.println("x: " + intersection.x + ", y: " + intersection.y + ", z:" + intersection.z);
+		}
+		System.out.println("-------------------------------------");
+		return intersections;
 	}
 	
 	public static void findVectorVerticalPlaneIntersection(Vector3d vector, Vector3d origin) {

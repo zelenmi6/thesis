@@ -1,6 +1,7 @@
 import javax.swing.JFrame;
 import javax.vecmath.Vector3d;
 
+import geometry.CameraCalculator;
 import geometry.ConvexHull;
 import visualizer.Visualizer;
 
@@ -15,6 +16,8 @@ public class Main {
 		frame.pack();
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
+		
+//		CameraCalculator.findRaysVerticalPlaneIntersection(new Vector3d[]{new Vector3d(0, 0, 0)}, new Vector3d(2, -6, 8) ,new Vector3d(3, 1, 6));
 		
 //		Vector3d [] pointArray = new Vector3d[]{new Vector3d(0, 0, 0), new Vector3d(10, 0, 0), new Vector3d(10, 10, 0), new Vector3d(0, 10, 0), new Vector3d(5, 5, 0),
 //				 new Vector3d(11, 11, 0)};
