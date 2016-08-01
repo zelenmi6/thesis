@@ -5,21 +5,111 @@ import java.util.List;
 
 import javax.vecmath.Vector2d;
 import javax.vecmath.Vector3d;
+import javax.vecmath.Vector4d;
 
 public class Calculations {
 	
+	/**
+	 * Checks whether a point lies within a polygon. Takes into account only the x and z axes.
+	 * @param point Point to check whether it lies with the given polygon.
+	 * @param polygon Given polygon.
+	 * @return True if the point lies within the polygon. False otherwise.
+	 */
 	public static boolean polygonContainsPoint(Vector2d point, Vector3d [] polygon) {
-	      int i;
-	      int j;
-	      boolean result = false;
-	      for (i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-	        if ((polygon[i].y > point.y) != (polygon[j].y > point.y) &&
-	            (point.x < (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) / (polygon[j].y-polygon[i].y) + polygon[i].x)) {
-	          result = !result;
-	         }
-	      }
-	      return result;
-	    }
+//		int i;
+//		int j;
+//		boolean result = false;
+//		for (i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+//			if ((polygon[i].y > point.y) != (polygon[j].y > point.y) &&
+//					(point.x < (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) / (polygon[j].y-polygon[i].y) + polygon[i].x)) {
+//				result = !result;
+//			}
+//		}
+//		return result;
+		return polygonContainsPoint(point.x, point.y, polygon);
+	}
+	
+	public static boolean polygonContainsPoint(Vector2d point, Vector2d [] polygon) {
+		//!TODO not implemented yet
+		return false;
+	}
+	
+	/**
+	 * Checks whether a point lies within a polygon in 3d. Assumes the polygon is convex
+	 * and all its points lie on the same plane as the point. That way we project the given
+	 * polygon with the point to the axis with the longest component and reduce it to a 2d
+	 * problem.
+	 * @param point Point to check whether it lies with the given polygon.
+	 * @param polygon Given polygon.
+	 * @param plane Plane where the polygon and and point lie.
+	 * @return
+	 */
+	public static boolean polygonContainsPoint(Vector3d point, Vector3d [] polygon, Vector4d plane) {
+		int longestComponentIdx = getPlanesNormVectorLongestComponentIndex(plane);
+		if (longestComponentIdx == 0) {
+			// project to x
+			polygonContainsPoint(new Vector2d(point.y, point.z), projectPolygonToXAxis(polygon));
+		} else if (longestComponentIdx == 1) {
+			// project to y
+			polygonContainsPoint(new Vector2d(point.x, point.z), projectPolygonToYAxis(polygon));
+		} else {
+			//project to z
+			polygonContainsPoint(new Vector2d(point.x, point.y), projectPolygonToZAxis(polygon));
+		}
+		
+		return false;
+	}
+	
+	private static Vector2d[] projectPolygonToXAxis(Vector3d[] polygon) {
+		Vector2d [] projected = new Vector2d[polygon.length];
+		for (int i = 0; i > polygon.length; i ++) {
+			projected[i] = new Vector2d(polygon[i].y, polygon[i].z);
+		}
+		return projected;
+	}
+	
+	private static Vector2d[] projectPolygonToYAxis(Vector3d[] polygon) {
+		Vector2d [] projected = new Vector2d[polygon.length];
+		for (int i = 0; i > polygon.length; i ++) {
+			projected[i] = new Vector2d(polygon[i].x, polygon[i].z);
+		}
+		return projected;
+	}
+	
+	private static Vector2d[] projectPolygonToZAxis(Vector3d[] polygon) {
+		Vector2d [] projected = new Vector2d[polygon.length];
+		for (int i = 0; i > polygon.length; i ++) {
+			projected[i] = new Vector2d(polygon[i].x, polygon[i].y);
+		}
+		return projected;
+	}
+	
+	private static int getPlanesNormVectorLongestComponentIndex(Vector4d plane) {
+		double longest = plane.x;
+		int idx = 0;
+		if (plane.y > longest) {
+			longest = plane.y;
+			idx = 1;
+		}
+		if (plane.z > longest) {
+			longest = plane.z;
+			idx = 2;
+		}
+		return idx;
+	}
+	
+	public static boolean polygonContainsPoint(double x, double y, Vector3d [] polygon) {
+		int i;
+		int j;
+		boolean result = false;
+		for (i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+			if ((polygon[i].y > y) != (polygon[j].y > y) &&
+					(x < (polygon[j].x - polygon[i].x) * (y - polygon[i].y) / (polygon[j].y-polygon[i].y) + polygon[i].x)) {
+				result = !result;
+			}
+		}
+		return result;
+	}
 	
 	/**
 	 * Checks whether a point lies inside a triangle

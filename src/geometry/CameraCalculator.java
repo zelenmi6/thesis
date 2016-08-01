@@ -207,6 +207,8 @@ public class CameraCalculator {
 		return intersections;
 	}
 	
+	
+	
 	public static void findVectorVerticalPlaneIntersection(Vector3d vector, Vector3d origin) {
 		// Parametric form of an equation
 		// P = origin + vector * t
