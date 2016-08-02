@@ -181,10 +181,12 @@ public class CameraCalculator {
 	public static Vector3d[] findRaysVerticalPlaneIntersection(Vector3d[] rays, Vector3d origin, Vector3d pointOfInterest) {
 		Vector3d [] intersections = new Vector3d[rays.length];
 		// Find the equation of the plane ax + by + cz = d;
-		// 
-		//!TODO dela se takhle vektor??
-		Vector3d plane = new Vector3d(pointOfInterest.x - origin.x, pointOfInterest.y - origin.y, pointOfInterest.z - origin.z);
-		double d = pointOfInterest.x * plane.x + pointOfInterest.y * plane.y + pointOfInterest.z * plane.z;
+		// a, b and c are equal to the components of the norm vector
+		// d is computed as a multiplication of each of the norm vector components and the point the plane passes through
+		//   e.g norm vector v = (1, 7, -2), point P = (3, 1, 6)
+		//   (1, 7, -2) * (x, y, z) = (1, 7, -2) * (3, 1, 6) => x + 7y -2z = -2
+		Vector3d normVector = new Vector3d(pointOfInterest.x - origin.x, pointOfInterest.y - origin.y, pointOfInterest.z - origin.z);
+		double d = pointOfInterest.x * normVector.x + pointOfInterest.y * normVector.y + pointOfInterest.z * normVector.z;
 		
 		for (int i = 0; i < rays.length; i ++) {
 			// Parametric form of an equation
@@ -195,8 +197,8 @@ public class CameraCalculator {
 			Vector2d z = new Vector2d(origin.z,rays[i].z);
 			// Solve equation for t
 			// plane.x * x.x + plane.x * x.y * t + plane.y * y.x * plane.y * y.y * t + plane.z * z.x + plane.z * z.y * t = d;
-			double expressionWithoutT = plane.x * x.x + plane.y * y.x + plane.z * z.x;
-			double expressionWithT = plane.x * x.y + plane.y * y.y + plane.z * z.y;
+			double expressionWithoutT = normVector.x * x.x + normVector.y * y.x + normVector.z * z.x;
+			double expressionWithT = normVector.x * x.y + normVector.y * y.y + normVector.z * z.y;
 			double t = (expressionWithoutT - d) / -expressionWithT;
 			intersections[i] = new Vector3d(x.x + x.y * t, y.x + y.y * t, z.x + z.y * t);
 		}
