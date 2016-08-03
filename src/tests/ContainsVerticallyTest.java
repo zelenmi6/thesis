@@ -43,9 +43,9 @@ public class ContainsVerticallyTest {
 	public void test2() {
 		Vector3d rays[] = rays = new Vector3d[4];
 		rays[0] = new Vector3d(-1, 1, 1);
-		rays[1] = new Vector3d(-1, 1, 0);
-		rays[2] = new Vector3d(-1, -1, 0);
-		rays[3] = new Vector3d(-1, -1, 1);
+		rays[1] = new Vector3d(-1, -1, 1);
+		rays[2] = new Vector3d(-1, -1, -1);
+		rays[3] = new Vector3d(-1, 1, -1);
 		
 		Vector3d origin = new Vector3d(0, 0, 0);
 		Vector3d pointOfInterest = new Vector3d(-1, 0, 2);
@@ -63,6 +63,7 @@ public class ContainsVerticallyTest {
 		Vector3d [] intersections = CameraCalculator.findRaysVerticalPlaneIntersection(rays, origin, pointOfInterest);
 		// neni asi treba vyrabet celou rovinu. mel by stacit normalovy vektor, protoze nepotrebuji d
 		Vector4d plane = Calculations.getEquationOfAPlane(origin, pointOfInterest);
+		System.out.println(plane);
 		boolean contains = Calculations.polygonContainsPoint(pointOfInterest, intersections, plane);
 		assertTrue("Point should NOT be contained in the polygon", !contains);
 	}

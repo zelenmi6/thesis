@@ -17,6 +17,11 @@ public class Main {
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 		
+//		Vector3d translation = CameraCalculator.translatePointToAxesOrigin(new Vector3d(5, 10, 15), new Vector3d(-3, 5, 8));
+//		System.out.println(translation);
+//		translation = CameraCalculator.translatePointFromAxesOriginToCamera(translation, new Vector3d(-3, 5, 8));
+//		System.out.println(translation);
+		
 //		CameraCalculator.findRaysVerticalPlaneIntersection(new Vector3d[]{new Vector3d(0, 0, 0)}, new Vector3d(2, -6, 8) ,new Vector3d(3, 1, 6));
 		
 //		Vector3d [] pointArray = new Vector3d[]{new Vector3d(0, 0, 0), new Vector3d(10, 0, 0), new Vector3d(10, 10, 0), new Vector3d(0, 10, 0), new Vector3d(5, 5, 0),

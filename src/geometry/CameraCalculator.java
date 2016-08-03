@@ -31,11 +31,16 @@ public class CameraCalculator {
 		Vector3d [] rotatedVectors = CameraCalculator.rotateRays(
 				ray1, ray2, ray3, ray4, roll, pitch, heading);
 		
+		for ( Vector3d ray : rotatedVectors) {
+			System.out.println(ray);
+		}
+		System.out.println("---------------------------------------");
+		
 		Vector3d origin = new Vector3d(0, 0, altitude);
 		Vector3d[] intersections = getRayGroundIntersections(rotatedVectors, altitude, origin);
 		limitRange(intersections, rotatedVectors, altitude, origin);
 		
-		findRaysVerticalPlaneIntersection(rotatedVectors, origin, new Vector3d(-10, 0, 8));
+//		findRaysVerticalPlaneIntersection(rotatedVectors, origin, new Vector3d(-10, 0, 8));
 		
 		return intersections;
 	}
@@ -185,16 +190,24 @@ public class CameraCalculator {
 		// d is computed as a multiplication of each of the norm vector components and the point the plane passes through
 		//   e.g norm vector v = (1, 7, -2), point P = (3, 1, 6)
 		//   (1, 7, -2) * (x, y, z) = (1, 7, -2) * (3, 1, 6) => x + 7y -2z = -2
-		Vector3d normVector = new Vector3d(pointOfInterest.x - origin.x, pointOfInterest.y - origin.y, pointOfInterest.z - origin.z);
-		double d = pointOfInterest.x * normVector.x + pointOfInterest.y * normVector.y + pointOfInterest.z * normVector.z;
+		
+		// It is also necessary to translate the origin to (0, 0, 0) and all other points accordingly in order to be able
+		// to detect that a camera ray intersects the given plane "from behind" or in other words - the opposite direction. 
+		// That is done by checking if the point of intersection lies within the same octant as the corresponding vector.
+		// Afterwards it is necessary to translate the points of intersection back accordingly
+		Vector3d pointOfInterestTranslated = translatePointToAxesOrigin(pointOfInterest, origin);
+		
+		Vector3d normVector = new Vector3d(pointOfInterestTranslated.x, pointOfInterestTranslated.y, pointOfInterestTranslated.z);
+		double d = pointOfInterestTranslated.x * normVector.x + 
+				pointOfInterestTranslated.y * normVector.y + pointOfInterestTranslated.z * normVector.z;
 		
 		for (int i = 0; i < rays.length; i ++) {
 			// Parametric form of an equation
 			// P = origin + vector * t
 			// Vectors can be preallocated but code readability is decreased.
-			Vector2d x = new Vector2d(origin.x,rays[i].x);
-			Vector2d y = new Vector2d(origin.y,rays[i].y);
-			Vector2d z = new Vector2d(origin.z,rays[i].z);
+			Vector2d x = new Vector2d(0, rays[i].x);
+			Vector2d y = new Vector2d(0, rays[i].y);
+			Vector2d z = new Vector2d(0, rays[i].z);
 			// Solve equation for t
 			// plane.x * x.x + plane.x * x.y * t + plane.y * y.x * plane.y * y.y * t + plane.z * z.x + plane.z * z.y * t = d;
 			double expressionWithoutT = normVector.x * x.x + normVector.y * y.x + normVector.z * z.x;
@@ -202,14 +215,58 @@ public class CameraCalculator {
 			double t = (expressionWithoutT - d) / -expressionWithT;
 			intersections[i] = new Vector3d(x.x + x.y * t, y.x + y.y * t, z.x + z.y * t);
 		}
+		
+		int cntr = 0;
 		for (Vector3d intersection : intersections) {
+			if (octantChanged(rays[cntr], intersection))
+				System.out.print("Octant changed, ");
 			System.out.println("x: " + intersection.x + ", y: " + intersection.y + ", z:" + intersection.z);
+			cntr++;
 		}
 		System.out.println("-------------------------------------");
+		
+		for (int i = 0; i < intersections.length; i ++) {
+			intersections[i] = translatePointFromAxesOriginToCamera(intersections[i], origin);
+		}
+		
 		return intersections;
 	}
 	
+	private static boolean octantChanged(Vector3d ray, Vector3d intersection) {
+		if (ray.x > 0 && intersection.x < 0 || ray.x < 0 && intersection.x > 0)
+			return true;
+		if (ray.y > 0 && intersection.y < 0 || ray.y < 0 && intersection.y > 0)
+			return true;
+		if (ray.z > 0 && intersection.z < 0 || ray.z < 0 && intersection.z > 0)
+			return true;
+		
+		
+		return false;
+	}
 	
+	/**
+	 * Translates a point according to camera being translated to (0, 0, 0)
+	 * @param pointToTranslate Point which we want to translate
+	 * @param cameraPosition Real camera position
+	 * @return Point translated according to camera being translated to (0, 0, 0)
+	 */
+	private static Vector3d translatePointToAxesOrigin(Vector3d pointToTranslate, Vector3d cameraPosition) {
+		return new Vector3d(pointToTranslate.x - cameraPosition.x, 
+				pointToTranslate.y - cameraPosition.y, 
+				pointToTranslate.z - cameraPosition.z);
+	}
+	
+	/**
+	 * Translates a point according to camera being translated from (0, 0, 0) to its original position
+	 * @param pointToTranslate Point which we want to translate
+	 * @param cameraPosition Real camera position
+	 * @return Point translated according to camera being translated from (0, 0, 0) to its original position
+	 */
+	private static Vector3d translatePointFromAxesOriginToCamera(Vector3d pointToTranslate, Vector3d cameraPosition) {
+		return new Vector3d(pointToTranslate.x + cameraPosition.x, 
+				pointToTranslate.y + cameraPosition.y, 
+				pointToTranslate.z + cameraPosition.z);
+	}
 	
 	public static void findVectorVerticalPlaneIntersection(Vector3d vector, Vector3d origin) {
 		// Parametric form of an equation
