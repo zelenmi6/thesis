@@ -7,6 +7,8 @@ import javax.vecmath.Vector2d;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
 
+import constants.CameraTesting;
+
 public class Calculations {
 	
 	public static Vector4d getEquationOfAPlane(Vector3d origin, Vector3d point) {
@@ -14,6 +16,40 @@ public class Calculations {
 		Vector3d normVector = new Vector3d(point.x - origin.x, point.y - origin.y, point.z - origin.z);
 		double d = point.x * normVector.x + point.y * normVector.y + point.z * normVector.z;
 		return new Vector4d(normVector.x, normVector.y, normVector.z, -d);
+	}
+	
+	/**
+	 * Calculates the intersection point of a plane and a vector
+	 * @param plane Plane ax + by + cz - d = 0
+	 * @param vector Vector ax + by + cz = 0
+	 * @param origin Origin of the vector
+	 * @return Point of intersection
+	 */
+	public static Vector3d findPlaneVectorIntersection(Vector4d plane, Vector3d vector, Vector3d origin) {
+		// Parametric form of an equation
+		// P = origin + vector * t
+		// Vectors can be preallocated but code readability is decreased.
+		Vector2d x = new Vector2d(origin.x, vector.x);
+		Vector2d y = new Vector2d(origin.y, vector.y);
+		Vector2d z = new Vector2d(origin.z, vector.z);
+		// Solve equation for t
+		// plane.x * x.x + plane.x * x.y * t + plane.y * y.x * plane.y * y.y * t + plane.z * z.x + plane.z * z.y * t = d;
+		double expressionWithoutT = plane.x * x.x + plane.y * y.x + plane.z * z.x;
+		double expressionWithT = plane.x * x.y + plane.y * y.y + plane.z * z.y;
+		// different sign from the original approach because d is on the other side of the equation
+		double t = (expressionWithoutT + plane.w) / -expressionWithT;
+		return new Vector3d(x.x + x.y * t, y.x + y.y * t, z.x + z.y * t);
+	}
+	
+	/**
+	 * Finds point along a vector at a distance given by a constant
+	 * Assumes the starting point of the vector is at (0, 0, 0) and the vector is normalized
+	 * http://math.stackexchange.com/questions/175896/finding-a-point-along-a-line-a-certain-distance-away-from-another-point
+	 * @param vector Vector along which we are looking for a point
+	 * @return Coordinates of a point
+	 */
+	public static Vector3d findPointAlongVectorAtDistance(Vector3d vector, double distance) {
+		return new Vector3d(vector.x * distance, vector.y * distance, vector.z * distance);
 	}
 	
 	/**

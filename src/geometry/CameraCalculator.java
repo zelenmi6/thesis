@@ -3,19 +3,20 @@ package geometry;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Vector2d;
 import javax.vecmath.Vector3d;
+import javax.vecmath.Vector4d;
 
 import Jama.Matrix;
 import constants.CameraTesting;
 
 public class CameraCalculator {
 	
+	public final static Vector3d AXES_ORIGIN = new Vector3d(0, 0, 0);
+	
 	/**
 	 * Get corners of the polygon captured by the camera
-	 * !TODO verify results. it seems that the diagonal angles between vectors do not match
-	 * the camera's specifications. 
 	 * @param FOVh Horizontal field of view in radians
 	 * @param FOVv Vertical field of view in radians
-	 * @param altitude Altitude of the camera
+	 * @param altitude Altitude of the camera in meters
 	 * @param heading Heading of the camera (z axis) in radians
 	 * @param roll Roll of the camera (x axis) in radians
 	 * @param pitch Pitch of the camera (y axis) in radians
@@ -31,16 +32,16 @@ public class CameraCalculator {
 		Vector3d [] rotatedVectors = CameraCalculator.rotateRays(
 				ray1, ray2, ray3, ray4, roll, pitch, heading);
 		
-		for ( Vector3d ray : rotatedVectors) {
-			System.out.println(ray);
-		}
-		System.out.println("---------------------------------------");
+//		for ( Vector3d ray : rotatedVectors) {
+//			System.out.println(ray);
+//		}
+//		System.out.println("---------------------------------------");
 		
 		Vector3d origin = new Vector3d(0, 0, altitude);
 		Vector3d[] intersections = getRayGroundIntersections(rotatedVectors, altitude, origin);
 		limitRange(intersections, rotatedVectors, altitude, origin);
 		
-//		findRaysVerticalPlaneIntersection(rotatedVectors, origin, new Vector3d(-10, 0, 8));
+		findRaysVerticalPlaneIntersection(rotatedVectors, origin, new Vector3d(-10, 0, 8));
 		
 		return intersections;
 	}
@@ -197,31 +198,29 @@ public class CameraCalculator {
 		// Afterwards it is necessary to translate the points of intersection back accordingly
 		Vector3d pointOfInterestTranslated = translatePointToAxesOrigin(pointOfInterest, origin);
 		
-		Vector3d normVector = new Vector3d(pointOfInterestTranslated.x, pointOfInterestTranslated.y, pointOfInterestTranslated.z);
-		double d = pointOfInterestTranslated.x * normVector.x + 
-				pointOfInterestTranslated.y * normVector.y + pointOfInterestTranslated.z * normVector.z;
+		// ax + by + cz - d = 0;
+		Vector4d plane = new Vector4d(pointOfInterestTranslated.x, pointOfInterestTranslated.y, pointOfInterestTranslated.z, 0);
+		plane.w = (pointOfInterestTranslated.x * plane.x + 
+				pointOfInterestTranslated.y * plane.y + pointOfInterestTranslated.z * plane.z) * (-1); // * (-1) to make d -> -d
 		
+		// Get intersections of rays and the plane with the point of interest
+		// !TODO moc neotestovano
 		for (int i = 0; i < rays.length; i ++) {
-			// Parametric form of an equation
-			// P = origin + vector * t
-			// Vectors can be preallocated but code readability is decreased.
-			Vector2d x = new Vector2d(0, rays[i].x);
-			Vector2d y = new Vector2d(0, rays[i].y);
-			Vector2d z = new Vector2d(0, rays[i].z);
-			// Solve equation for t
-			// plane.x * x.x + plane.x * x.y * t + plane.y * y.x * plane.y * y.y * t + plane.z * z.x + plane.z * z.y * t = d;
-			double expressionWithoutT = normVector.x * x.x + normVector.y * y.x + normVector.z * z.x;
-			double expressionWithT = normVector.x * x.y + normVector.y * y.y + normVector.z * z.y;
-			double t = (expressionWithoutT - d) / -expressionWithT;
-			intersections[i] = new Vector3d(x.x + x.y * t, y.x + y.y * t, z.x + z.y * t);
+			intersections[i] = Calculations.findPlaneVectorIntersection(plane, rays[i], AXES_ORIGIN);
 		}
 		
-		int cntr = 0;
-		for (Vector3d intersection : intersections) {
-			if (octantChanged(rays[cntr], intersection))
+		for (int i = 0; i < intersections.length; i ++) {
+			if (octantChanged(rays[i], intersections[i])) {
 				System.out.print("Octant changed, ");
-			System.out.println("x: " + intersection.x + ", y: " + intersection.y + ", z:" + intersection.z);
-			cntr++;
+				Vector3d middle = getRayInTheMiddle(rays);
+				Vector3d pointAlongMiddle = Calculations.findPointAlongVectorAtDistance(middle, CameraTesting.MAX_DISTANCE);
+				//!TODO zkontrolovat, zdali je ok davat jako origin vzdy (0,0,0)
+				Vector4d viewLimitingPlane = Calculations.getEquationOfAPlane(AXES_ORIGIN, pointAlongMiddle);
+				Vector3d pointOnRay = Calculations.findPlaneVectorIntersection(viewLimitingPlane, rays[i], AXES_ORIGIN);
+				//!TODO projekce na plosinu
+				System.out.print("");
+			}
+			System.out.println("x: " + intersections[i].x + ", y: " + intersections[i].y + ", z:" + intersections[i].z);
 		}
 		System.out.println("-------------------------------------");
 		
@@ -231,6 +230,21 @@ public class CameraCalculator {
 		
 		return intersections;
 	}
+	
+	private static Vector3d getRayInTheMiddle(Vector3d [] rays) {
+		if (rays.length == 0) {
+			return null;
+		}
+		
+		Vector3d middle = new Vector3d();
+		for (int i = 0; i < rays.length; i ++) {
+			middle.x += rays[i].x;
+			middle.y += rays[i].y;
+			middle.z += rays[i].z;
+		}
+		return middle;
+	}
+	
 	
 	private static boolean octantChanged(Vector3d ray, Vector3d intersection) {
 		if (ray.x > 0 && intersection.x < 0 || ray.x < 0 && intersection.x > 0)
