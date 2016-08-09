@@ -18,6 +18,44 @@ public class Calculations {
 		return new Vector4d(normVector.x, normVector.y, normVector.z, -d);
 	}
 	
+	public static Vector4d getEquationOfAPlane(Vector3d [] points) throws Exception {
+		if (points.length < 3)
+			throw new Exception("Not enough points in the array. A plane needs at least 3 points to be constructed.");
+		return getEquationOfAPlane(points[0], points[1], points[2]);
+	}
+	
+	public static Vector4d getEquationOfAPlane(Vector3d a, Vector3d b, Vector3d c) {
+		// Find the equation of the plane ax + by + cz - d == 0;
+		Vector3d normVector = getPlaneNormVector(a, b, c);
+		double d = a.x * normVector.x + a.y * normVector.y + a.z * normVector.z;
+		return new Vector4d(normVector.x, normVector.y, normVector.z, -d);
+	}
+	
+	public static Vector3d getPlaneNormVector(Vector3d [] points) throws Exception {
+		if (points.length < 3)
+			throw new Exception("Not enough points in the array. A plane needs at least 3 points to be constructed.");
+		return getPlaneNormVector(points[0], points[1], points[2]);
+	}
+	
+	public static Vector3d getPlaneNormVector(Vector3d a, Vector3d b, Vector3d c) {
+		Vector3d planeVector1 = new Vector3d(b.x - a.x, b.y - a.y, b.z - a.z);
+		Vector3d planeVector2 = new Vector3d(c.x - a.x, c.y - a.y, c.z - a.z);
+		Vector3d normVector = new Vector3d();
+		normVector.cross(planeVector1, planeVector2);
+		normVector.normalize();
+		return normVector;
+	}
+	
+	public static double getPointPlaneDistance(Vector3d planeNormVector, Vector3d pointInPlane, Vector3d point) {
+		Vector3d newPoint = new Vector3d(pointInPlane.x - point.x, pointInPlane.y - point.y, pointInPlane.z - point.z);
+		return planeNormVector.dot(newPoint);
+	}
+	
+	public static double getPointPlaneDistance(Vector4d plane, Vector3d point) {
+		return (plane.x * point.x + plane.y * point.y + plane.z * point.z + plane.w) 
+				/ Math.sqrt(plane.x * plane.x + plane.y * plane.y + plane.z * plane.z);
+	}
+	
 	/**
 	 * Calculates the intersection point of a plane and a vector
 	 * @param plane Plane ax + by + cz - d = 0

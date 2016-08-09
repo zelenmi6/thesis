@@ -1,6 +1,7 @@
 import javax.swing.JFrame;
 import javax.vecmath.Vector3d;
 
+import geometry.Calculations;
 import geometry.CameraCalculator;
 import geometry.ConvexHull;
 import visualizer.Visualizer;
@@ -16,6 +17,8 @@ public class Main {
 		frame.pack();
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
+		
+//		System.out.println(Calculations.getEquationOfAPlane(new Vector3d(1, 1, 1), new Vector3d(-1, 1, 0), new Vector3d(2, 0, 3)).toString());
 		
 //		Vector3d translation = CameraCalculator.translatePointToAxesOrigin(new Vector3d(5, 10, 15), new Vector3d(-3, 5, 8));
 //		System.out.println(translation);

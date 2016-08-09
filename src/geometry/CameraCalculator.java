@@ -32,21 +32,47 @@ public class CameraCalculator {
 		Vector3d [] rotatedVectors = CameraCalculator.rotateRays(
 				ray1, ray2, ray3, ray4, roll, pitch, heading);
 		
-//		for ( Vector3d ray : rotatedVectors) {
-//			System.out.println(ray);
-//		}
-//		System.out.println("---------------------------------------");
-		
 		Vector3d origin = new Vector3d(0, 0, altitude);
-		Vector3d[] intersections = getRayGroundIntersections(rotatedVectors, altitude, origin);
+		Vector3d[] intersections = getRayGroundIntersections(rotatedVectors, origin);
 		limitRange(intersections, rotatedVectors, altitude, origin);
 		
-		findRaysVerticalPlaneIntersection(rotatedVectors, origin, new Vector3d(-10, 0, 8));
+		
+		pointIsInsidePyramid(rotatedVectors, origin, new Vector3d(1, 0, 0));
+		if (pointIsInsidePyramid(rotatedVectors, origin, new Vector3d(1, 0, 0)))
+			System.out.println("Inside");
+		else
+			System.out.println("Outside");
 		
 		return intersections;
 	}
 	
-	private static Vector3d [] getRayGroundIntersections(Vector3d [] rays, double altitude, Vector3d origin) {
+	public static boolean pointIsInsidePyramid(Vector3d [] rays, Vector3d origin, Vector3d point) {
+		Vector3d [] normVectors = new Vector3d[rays.length];
+		Vector4d [] planes = new Vector4d[rays.length];
+		for (int i = 0; i < rays.length; i ++) {
+			normVectors[i] = Calculations.getPlaneNormVector(translatePointFromAxesOriginToCamera(rays[i], origin),
+					translatePointFromAxesOriginToCamera(rays[(i+1)%rays.length], origin), origin);
+//			planes[i] = Calculations.getEquationOfAPlane(translatePointFromAxesOriginToCamera(rays[i], origin),
+//					translatePointFromAxesOriginToCamera(rays[(i+1)%rays.length], origin), origin);
+//			printPlaneForWolfram(planes[i], "f" + i);
+		}
+		
+		for (int i = 0; i < normVectors.length; i ++) {
+			if (Calculations.getPointPlaneDistance(normVectors[i], origin, point) > 0) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	private static void printPlaneForWolfram(Vector4d plane, String functionName) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(functionName).append("[x_, y_] := 1/").append(plane.z).append("(").append(plane.x).append("x + ")
+		.append(plane.y).append("y - ").append(plane.w).append(");");
+		System.out.println(sb.toString());
+	}
+	
+	private static Vector3d [] getRayGroundIntersections(Vector3d [] rays, Vector3d origin) {
 		Vector3d [] intersections = new Vector3d[rays.length];
 		for (int i = 0; i < rays.length; i ++) {
 			intersections[i] = CameraCalculator.findRayGroundIntersection(rays[i], origin);
