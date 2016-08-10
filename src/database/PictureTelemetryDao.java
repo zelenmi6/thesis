@@ -11,14 +11,13 @@ import java.util.List;
 import javax.vecmath.Vector2d;
 import javax.vecmath.Vector3d;
 
-import loaders.PictureTelemetry;
+import loaders.Telemetry;
 
-//!TODO osetrit, kdyz se pokusim nacist duplicitni data
 public class PictureTelemetryDao {
 	
 	private static PictureTelemetryDao instance = null;
 
-	private Connection connection = null;;
+	private Connection connection = null;
 	PreparedStatement addMonitoredArea, addMonitoredAreaNameOnly, addDataSet, addPicture, addTelemetry,
 	getMonitoredAreaId, getDataSetId, getPictureId, deleteMonitoredArea, getIdContainingPoint, liesWithin;
 	PostGISStringBuilder postgisBuilder = new PostGISStringBuilder();
@@ -143,7 +142,7 @@ public class PictureTelemetryDao {
 		return 0; // returns picture id
 	}
 	
-	public void addTelemetry(int pictureId, PictureTelemetry telemetry) {
+	public void addTelemetry(int pictureId, Telemetry telemetry) {
 		try {
 			addTelemetry.setString(1, postgisBuilder.pointGeometry3D(telemetry));
 			addTelemetry.setDouble(2, telemetry.heading);

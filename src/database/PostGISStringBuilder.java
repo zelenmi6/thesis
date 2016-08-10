@@ -2,7 +2,7 @@ package database;
 
 import javax.vecmath.Vector2d;
 
-import loaders.PictureTelemetry;
+import loaders.Telemetry;
 
 public class PostGISStringBuilder {
 	
@@ -18,7 +18,7 @@ public class PostGISStringBuilder {
 		return sb.toString();
 	}
 	
-	public String pointGeometry3D(PictureTelemetry telemetry) {
+	public String pointGeometry3D(Telemetry telemetry) {
 		return pointGeometry3d(telemetry.coordinates.x, telemetry.coordinates.y, telemetry.coordinates.z);
 	}
 	

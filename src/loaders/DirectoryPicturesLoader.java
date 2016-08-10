@@ -22,7 +22,7 @@ import geometry.CameraCalculator;
  * @version 1.0
  * @created 16-Jun-2016 12:47:00 PM
  */
-public class DirectoryPicturesLoader implements DataLoaderInterface {
+public class DirectoryPicturesLoader {
 	
 	private static final List<String> IMAGE_EXTENSIONS = Collections.unmodifiableList(
 		    new ArrayList<String>() {{
@@ -48,7 +48,7 @@ public class DirectoryPicturesLoader implements DataLoaderInterface {
 		this.directoryPath = directoryPath;
 		this.FOVv = FOVv;
 		this.FOVh = FOVh;
-		PictureTelemetryDao.getInstance();
+		PictureTelemetryDao.getInstance();//???
 		int monitoredAreaId;
 		try {
 			monitoredAreaId = dao.addMonitoredArea(monitoredAreaName);
@@ -67,19 +67,11 @@ public class DirectoryPicturesLoader implements DataLoaderInterface {
 		}
 	}
 	
-	/**
-	 * Iterates through files in a directory, finds image files and their corresponding telemetry files,
-	 * parses them and saves information in the database.
-	 */
-	public void processData(){
-		
-	}
-	
 	private void processImageFile(File imageFile, File [] listOfFiles) {
 		try {
 			File telemetryFile = findTelemetryFile(imageFile, listOfFiles);
 			try {
-				PictureTelemetry telemetry = parseTelemetryFile(telemetryFile);
+				Telemetry telemetry = parseTelemetryFile(telemetryFile);
 				Vector3d [] boundingBox = getBoundingBox(telemetry);
 				int pictureId = dao.addPicture(dataSetId, imageFile.getPath(), boundingBox);
 				dao.addTelemetry(pictureId, telemetry);
@@ -92,7 +84,7 @@ public class DirectoryPicturesLoader implements DataLoaderInterface {
 		}
 	}
 	
-	private Vector3d [] getBoundingBox(PictureTelemetry telemetry) {
+	private Vector3d [] getBoundingBox(Telemetry telemetry) {
 		Vector3d [] polygon = CameraCalculator.getBoundingPolygon(FOVh, FOVv, 
 				telemetry.coordinates.z, telemetry.heading, telemetry.roll, telemetry.pitch);
 //		System.out.println("UAV: " + telemetry.coordinates.x+ ", " + telemetry.coordinates.y + "," + telemetry.coordinates.z);
@@ -143,7 +135,7 @@ public class DirectoryPicturesLoader implements DataLoaderInterface {
 		return false;
 	}
 	
-	private PictureTelemetry parseTelemetryFile(File telemetryFile) throws IOException {
+	private Telemetry parseTelemetryFile(File telemetryFile) throws IOException {
 		FileInputStream fs= new FileInputStream(telemetryFile);
 		BufferedReader br = new BufferedReader(new InputStreamReader(fs));
 		String telemetry = br.readLine();
@@ -175,7 +167,7 @@ public class DirectoryPicturesLoader implements DataLoaderInterface {
 //		System.out.println(pitch);
 //		System.out.println("--------------------------");
 		
-		return new PictureTelemetry(cartCoords, heading, roll, pitch);
+		return new Telemetry(-1, cartCoords, heading, roll, pitch);
 	}
 	
 	private void calculateRotationMatrixAndVector(double longitude, double latitude, double altitude) {

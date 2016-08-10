@@ -323,15 +323,6 @@ public class CameraCalculator {
 		System.out.println("x: " +( x.x + x.y * t )+ ", y:" +( y.x + y.y * t )+ ", z:" +( z.x + z.y * t));
 	}
 	
-	public static Trapezoid getTrapezoid(double altitude, double FOVh, double FOVv, double heading, double roll, double pitch) {
-		double bottom = droneToBottomDist(altitude, FOVh, pitch);
-		double top = droneToTopDist(altitude, FOVh, pitch);
-		double left = droneToLeftDist(altitude, FOVv, roll);
-		double right = droneToRightDist(altitude, FOVv, roll);
-		
-		return null;
-	}
-	
 	public static double droneToBottomDist(double altitude, double FOVh, double pitch) {
 		double angle = limitAngle(pitch - FOVh/2);
 		double debugDegrees = Math.toDegrees(pitch - FOVh/2);
