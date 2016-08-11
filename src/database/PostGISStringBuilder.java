@@ -12,21 +12,21 @@ public class PostGISStringBuilder {
 		
 	}
 	
-	public String pointGeometry3d(double x, double y, double z) {
+	public String point3d(double x, double y, double z) {
 		sb.setLength(0);
 		sb.append("POINT(").append(x).append(" ").append(y).append(" ").append(z).append(")");
 		return sb.toString();
 	}
 	
 	public String pointGeometry3D(Telemetry telemetry) {
-		return pointGeometry3d(telemetry.coordinates.x, telemetry.coordinates.y, telemetry.coordinates.z);
+		return point3d(telemetry.coordinates.x, telemetry.coordinates.y, telemetry.coordinates.z);
 	}
 	
-	public String pointGeometry2d(Vector2d point) {
-		return pointGeometry2d(point.x, point.y);
+	public String point2d(Vector2d point) {
+		return point2d(point.x, point.y);
 	}
 	
-	public String pointGeometry2d(double x, double y) {
+	public String point2d(double x, double y) {
 		sb.setLength(0);
 		sb.append("POINT(").append(x).append(" ").append(y).append(")");
 		return sb.toString();

@@ -1,22 +1,30 @@
 import javax.swing.JFrame;
 import javax.vecmath.Vector3d;
 
+import Cameras.AbstractCamera;
+import Cameras.Hero3PlusBlack;
+import Cameras.Hero3PlusBlack.Hero3PlusBlackFieldOfView;
 import geometry.Calculations;
 import geometry.CameraCalculator;
 import geometry.ConvexHull;
+import loaders.VideoLoader;
 import visualizer.Visualizer;
 
 public class Main {
 	
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws Exception {
 		
-		Visualizer v = new Visualizer();
-		JFrame frame = new JFrame("Visualizer");
-		frame.setContentPane(v);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.pack();
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
+//		Visualizer v = new Visualizer();
+//		JFrame frame = new JFrame("Visualizer");
+//		frame.setContentPane(v);
+//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//		frame.pack();
+//		frame.setLocationRelativeTo(null);
+//		frame.setVisible(true);
+		
+		AbstractCamera camera = new Hero3PlusBlack(Hero3PlusBlackFieldOfView.WIDE_16X9, 25);
+		VideoLoader vl = new VideoLoader("nothing yet", "C:\\Users\\Milan\\Desktop\\droneVideo\\parsed\\2016_07_25_11_28_14.csv",
+				"test", camera);
 		
 //		System.out.println(Calculations.getEquationOfAPlane(new Vector3d(1, 1, 1), new Vector3d(-1, 1, 0), new Vector3d(2, 0, 3)).toString());
 		

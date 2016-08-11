@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -167,7 +168,7 @@ public class DirectoryPicturesLoader {
 //		System.out.println(pitch);
 //		System.out.println("--------------------------");
 		
-		return new Telemetry(-1, cartCoords, heading, roll, pitch);
+		return new Telemetry(new Timestamp(-1), cartCoords, heading, roll, pitch);
 	}
 	
 	private void calculateRotationMatrixAndVector(double longitude, double latitude, double altitude) {
