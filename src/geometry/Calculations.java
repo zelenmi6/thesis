@@ -413,6 +413,40 @@ public class Calculations {
 		return nearestIndexes;
 	}
 	
+	public static Vector2d createTranslatedPoint(double x, double y, double translationX, double translationY) {
+		return new Vector2d(x + translationX, y + translationY);
+	}
+	
+	public static Vector2d createTranslatedPoint(Vector2d original, double translationX, double translationY) {
+		return new Vector2d(original.x + translationX, original.y + translationY);
+	}
+	
+	/**
+	 * Translates the passed parameter into new coordinates.
+	 * @param point Point to be translated
+	 * @param translationX Translation x
+	 * @param translationY Translation y
+	 */
+	public static void  translatePoint(Vector2d point, double translationX, double translationY) {
+		point.x += translationX;
+		point.y += translationY;
+	}
+	
+	
+	public static void translate3dPointXYonly(Vector3d point, double translationX, double translationY) {
+		point.x += translationX;
+		point.y += translationY;
+	}
+	
+	/**
+	 * Moves point on the ground ignoring the z-coordinate.
+	 * @param point Point to translate
+	 * @param translation Translation of the point
+	 */
+	public static void translate3dPointXYonly(Vector3d point, Vector3d translation) {
+		translate3dPointXYonly(point, translation.x, translation.y);
+	}
+	
 }
 
 

@@ -8,6 +8,8 @@ import geometry.Calculations;
 import geometry.CameraCalculator;
 import geometry.ConvexHull;
 import loaders.VideoLoader;
+import video.FrameGrabber;
+import video.OpenCVGrabber;
 import visualizer.Visualizer;
 
 public class Main {
@@ -22,9 +24,9 @@ public class Main {
 //		frame.setLocationRelativeTo(null);
 //		frame.setVisible(true);
 		
-		AbstractCamera camera = new Hero3PlusBlack(Hero3PlusBlackFieldOfView.WIDE_16X9, 25);
-		VideoLoader vl = new VideoLoader("nothing yet", "C:\\Users\\Milan\\Desktop\\droneVideo\\parsed\\2016_07_25_11_28_14.csv",
-				"test", camera);
+//		AbstractCamera camera = new Hero3PlusBlack(Hero3PlusBlackFieldOfView.WIDE_16X9, 25);
+//		VideoLoader vl = new VideoLoader("nothing yet", "C:\\Users\\Milan\\Desktop\\droneVideo\\parsed\\2016_07_25_11_28_14.csv",
+//				"test", camera, (1212/camera.getFps() * 1000));
 		
 //		System.out.println(Calculations.getEquationOfAPlane(new Vector3d(1, 1, 1), new Vector3d(-1, 1, 0), new Vector3d(2, 0, 3)).toString());
 		
@@ -42,26 +44,14 @@ public class Main {
 //			System.out.println(point);
 //		}
 		
-//		OpenCVGrabber grabber = new OpenCVGrabber("C:/JavaPrograms/thesis/resources/input/SampleVideo_1280x720_5mb.flv",
+//		OpenCVGrabber grabber = new OpenCVGrabber("C:\\Users\\Milan\\Desktop\\droneVideo\\video\\1_converted.mp4",
 //				"C:/JavaPrograms/thesis/resources/output/");
-
-		// PictureTelemetryDao dao = PictureTelemetryDao.getInstance();
-		// try {
-		// dao.addPicture(141, "dummyPath2", new Vector3d[]{a, b, c, d});
-		// } catch (Exception e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
-
-		// DirectoryPicturesLoader parser = new DirectoryPicturesLoader("Dvur,
-		// ",
-		// "C:/Users/Milan/Google
-		// Drive/Škola/Magistr/Diplomka2/bkpImages/dvurSmall", FOVv, FOVh);
-		// DirectoryPicturesLoader parser = new
-		// DirectoryPicturesLoader("Invalidovna, ", "C:/Users/Milan/Google
-		// Drive/Škola/Magistr/Diplomka2/bkpImages/invalidovna");
-		// PictureTelemetryDao dao = PictureTelemetryDao.getInstance();
-		//
+		
+//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\droneVideo\\video\\1_converted.mp4");
+//		grabber.showNthFrame(1212);
+//		grabber.showNthFrame(25);
+//		grabber.showNthFrame(6575);
+		//48 vterin
 
 
 //		System.out.println("Program has finished");

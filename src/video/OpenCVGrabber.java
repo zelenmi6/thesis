@@ -21,8 +21,8 @@ public class OpenCVGrabber {
 				counter ++;
 				cap.grab();
 				cap.retrieve(matFrame);
-				if (counter % 25 == 0)
-					Imgcodecs.imwrite(outputDirectory + counter + ".png", matFrame);
+//				if (counter % 25 == 0)
+//					Imgcodecs.imwrite(outputDirectory + counter + ".png", matFrame);
 				if (!(matFrame.empty())) {
 					ims.showImage(matFrame);
 //					try {

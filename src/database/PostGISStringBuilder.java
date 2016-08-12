@@ -1,6 +1,7 @@
 package database;
 
 import javax.vecmath.Vector2d;
+import javax.vecmath.Vector3d;
 
 import loaders.Telemetry;
 
@@ -32,13 +33,28 @@ public class PostGISStringBuilder {
 		return sb.toString();
 	}
 	
-	public String trapezoidGeometry2d(Vector2d [] trapezoid) {
+	public String polygon2d(Vector2d [] polygon) {
 		sb.setLength(0);
-		sb.append("POLYGON((").append(trapezoid[0].x).append(" ").append(trapezoid[0].y).append(", ")
-		.append(trapezoid[1].x).append(" ").append(trapezoid[1].y).append(", ")
-		.append(trapezoid[2].x).append(" ").append(trapezoid[2].y).append(", ")
-		.append(trapezoid[3].x).append(" ").append(trapezoid[3].y).append(", ")
-		.append(trapezoid[0].x).append(" ").append(trapezoid[0].y)
+		sb.append("POLYGON((").append(polygon[0].x).append(" ").append(polygon[0].y).append(", ")
+		.append(polygon[1].x).append(" ").append(polygon[1].y).append(", ")
+		.append(polygon[2].x).append(" ").append(polygon[2].y).append(", ")
+		.append(polygon[3].x).append(" ").append(polygon[3].y).append(", ")
+		.append(polygon[0].x).append(" ").append(polygon[0].y)
+		.append("))");
+		return sb.toString();
+	}
+	
+	public String polygo2dFrom3dVector(Vector3d [] polygon) {
+		if (polygon == null) {
+			return "POLYGON((0 0, 1 1, 2 2, 0 0))";
+		}
+		//!TODO duplicate code as polygon2d(Vector2d[]). Needs refactoring.
+		sb.setLength(0);
+		sb.append("POLYGON((").append(polygon[0].x).append(" ").append(polygon[0].y).append(", ")
+		.append(polygon[1].x).append(" ").append(polygon[1].y).append(", ")
+		.append(polygon[2].x).append(" ").append(polygon[2].y).append(", ")
+		.append(polygon[3].x).append(" ").append(polygon[3].y).append(", ")
+		.append(polygon[0].x).append(" ").append(polygon[0].y)
 		.append("))");
 		return sb.toString();
 	}

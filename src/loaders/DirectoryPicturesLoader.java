@@ -16,6 +16,7 @@ import javax.vecmath.GVector;
 import javax.vecmath.Vector3d;
 
 import database.PictureTelemetryDao;
+import geometry.Calculations;
 import geometry.CameraCalculator;
 
 /**
@@ -90,7 +91,7 @@ public class DirectoryPicturesLoader {
 				telemetry.coordinates.z, telemetry.heading, telemetry.roll, telemetry.pitch);
 //		System.out.println("UAV: " + telemetry.coordinates.x+ ", " + telemetry.coordinates.y + "," + telemetry.coordinates.z);
 		for (Vector3d point : polygon) {
-			CameraCalculator.translate3dPointOnGround(point, telemetry.coordinates);
+			Calculations.translate3dPointXYonly(point, telemetry.coordinates);
 //			System.out.println(point.toString());
 		}
 //		System.out.println("-----------------");

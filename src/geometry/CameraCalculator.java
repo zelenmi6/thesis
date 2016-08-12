@@ -37,11 +37,11 @@ public class CameraCalculator {
 		limitRange(intersections, rotatedVectors, altitude, origin);
 		
 		
-		pointIsInsidePyramid(rotatedVectors, origin, new Vector3d(1, 0, 0));
-		if (pointIsInsidePyramid(rotatedVectors, origin, new Vector3d(1, 0, 0)))
-			System.out.println("Inside");
-		else
-			System.out.println("Outside");
+//		pointIsInsidePyramid(rotatedVectors, origin, new Vector3d(1, 0, 0));
+//		if (pointIsInsidePyramid(rotatedVectors, origin, new Vector3d(1, 0, 0)))
+//			System.out.println("Inside");
+//		else
+//			System.out.println("Outside");
 		
 		return intersections;
 	}
@@ -362,40 +362,6 @@ public class CameraCalculator {
 		}
 	}
 		
-	public static Vector2d translatePoint(double x, double y, double translationX, double translationY) {
-		return new Vector2d(x + translationX, y + translationY);
-	}
-	
-	public static Vector2d createTranslatedPoint(Vector2d original, double translationX, double translationY) {
-		return new Vector2d(original.x + translationX, original.y + translationY);
-	}
-	
-	/**
-	 * Translates the passed parameter into new coordinates.
-	 * @param point Point to be translated
-	 * @param translationX Translation x
-	 * @param translationY Translation y
-	 */
-	public static void  translatePoint(Vector2d point, double translationX, double translationY) {
-		point.x += translationX;
-		point.y += translationY;
-	}
-	
-	
-	public static void translate3dPointOnGround(Vector3d point, double translationX, double translationY) {
-		point.x += translationX;
-		point.y += translationY;
-	}
-	
-	/**
-	 * Moves point on the ground ignoring the z-coordinate.
-	 * @param point Point to translate
-	 * @param translation Translation of the point
-	 */
-	public static void translate3dPointOnGround(Vector3d point, Vector3d translation) {
-		translate3dPointOnGround(point, translation.x, translation.y);
-	}
-	
 //	public static Vector2d translatePoint(Vector2d point, Vector2d ) {
 //		return new Vector2d(point.x + translationX, point.y + translationY);
 //	}
