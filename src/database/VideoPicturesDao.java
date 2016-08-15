@@ -4,13 +4,14 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
 
 import javax.vecmath.Vector3d;
 
-import Cameras.AbstractCamera;
+import cameras.AbstractCamera;
 import loaders.Telemetry;
 
 public class VideoPicturesDao {
@@ -18,8 +19,9 @@ public class VideoPicturesDao {
 	private static VideoPicturesDao instance = null;
 	private Connection connection = null;
 	PostGISStringBuilder postgisBuilder = new PostGISStringBuilder();
-	PreparedStatement addMonitoredAreaNameOnly, getMonitoredAreaId, originSet, setOrigin, addDataSet, isaVideo,
-			addFrame, isaVideoFrame;
+	PreparedStatement addMonitoredAreaNameOnly, getMonitoredAreaId, originSet, setOrigin,
+					  addDataSet, isaVideo, getDataSetInformation,
+					  addFrame, isaVideoFrame, getCameraCoordinates;
 
 	protected VideoPicturesDao() {
 		try {
@@ -32,8 +34,7 @@ public class VideoPicturesDao {
 			connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/videos_pictures", "test",
 					"asd54asd24asd897");
 
-			///////////////////////////// Monitored Area
-			///////////////////////////// /////////////////////////////
+			///////////////////////////// Monitored Area /////////////////////////////
 
 			addMonitoredAreaNameOnly = connection
 					.prepareStatement("INSERT INTO \"MonitoredArea\" (\"name\") SELECT (?) "
@@ -53,6 +54,16 @@ public class VideoPicturesDao {
 							+ " \"FOV_vertical\", \"FOV_horizontal\") VALUES(?, ?, ?, ?, ?) RETURNING id");
 
 			isaVideo = connection.prepareStatement("INSERT INTO \"Video\" (data_set_id, fps) VALUES (?, ?)");
+			
+			getDataSetInformation = connection.prepareStatement(
+					"SELECT (ds.timestamp + interval '1 second' * frames.frame_number / 25) \"Time of Frame\","
+							+ " frames.frame_id \"id\", frames.frame_number \"Frame number\","
+							+ "(interval '1 second' * frames.frame_number / 25) \"Video time\", "
+							+ "ST_AsText(frames.bounding_polygon) poly  FROM "
+							+ "(SELECT * FROM \"DataSet\" WHERE id = ?) as ds "
+							+ "inner join (SELECT * FROM \"Frame\" f "
+							+ "inner join \"VideoFrame\" vf on f.id = vf.frame_id) as frames on ds.id = frames.data_set_id "
+							+ "ORDER BY \"Video time\" ASC;");
 
 			/////////////////////////// Frames /////////////////////////////
 
@@ -63,6 +74,10 @@ public class VideoPicturesDao {
 
 			isaVideoFrame = connection
 					.prepareStatement("INSERT INTO \"VideoFrame\" (frame_id, frame_number) " + "VALUES (?, ?)");
+			
+			getCameraCoordinates = connection.prepareStatement("SELECT ST_X(camera_coordinates) \"x\", "
+					+ "ST_Y(camera_coordinates) \"y\", ST_Z(camera_coordinates) \"z\" "
+					+ "FROM \"Frame\" WHERE id = ?");
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -114,6 +129,21 @@ public class VideoPicturesDao {
 		isaVideo.setInt(2, camera.getFps());
 		isaVideo.executeUpdate();
 	}
+	
+	public void getDataSetInformation(int dataSetId) throws SQLException {
+		getDataSetInformation.setInt(1, dataSetId);
+		ResultSet rs = getDataSetInformation.executeQuery();
+		ResultSetMetaData rsmd = rs.getMetaData();
+		int columnsNumber = rsmd.getColumnCount();
+		while (rs.next()) {
+		    for (int i = 1; i <= columnsNumber; i++) {
+		        if (i > 1) System.out.print(",  ");
+		        String columnValue = rs.getString(i);
+		        System.out.print(columnValue + " " + rsmd.getColumnName(i));
+		    }
+		    System.out.println("");
+		}
+	}
 
 	public void addFrame(int dataSetId, Telemetry telemetry, Vector3d[] boundingPolygon, int frameNumber)
 			throws SQLException {
@@ -147,6 +177,17 @@ public class VideoPicturesDao {
 		}
 		String origin = rs.getString(1);
 		return origin;
+	}
+	
+	public double [] getCameraCoordinates(int frameId) throws SQLException {
+		getCameraCoordinates.setInt(1, frameId);
+		
+		ResultSet rs = getCameraCoordinates.executeQuery();
+		if (!rs.next()) {
+			throw new SQLException("Error retrieving camera coordinates");
+		}
+		return new double[]{rs.getDouble(1), rs.getDouble(2), rs.getDouble(3)};
+//		System.out.println("x: " + rs.getDouble(1) + ", y: " + rs.getDouble(2) + ", z: " + rs.getDouble(3));
 	}
 
 	public void setMonitoredAreaOrigin(int monitoredArea, double[] lonLatAlt) throws SQLException {

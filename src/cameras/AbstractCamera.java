@@ -1,4 +1,4 @@
-package Cameras;
+package cameras;
 
 public abstract class AbstractCamera {
 	

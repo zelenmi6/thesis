@@ -1,9 +1,10 @@
 import javax.swing.JFrame;
 import javax.vecmath.Vector3d;
 
-import Cameras.AbstractCamera;
-import Cameras.Hero3PlusBlack;
-import Cameras.Hero3PlusBlack.Hero3PlusBlackFieldOfView;
+import analyzers.VideoAnalyzer;
+import cameras.AbstractCamera;
+import cameras.Hero3PlusBlack;
+import cameras.Hero3PlusBlack.Hero3PlusBlackFieldOfView;
 import geometry.Calculations;
 import geometry.CameraCalculator;
 import geometry.ConvexHull;
@@ -15,6 +16,16 @@ import visualizer.Visualizer;
 public class Main {
 	
 	public static void main(String[] args) throws Exception {
+		
+		VideoAnalyzer va = new VideoAnalyzer();
+		va.setRotationMatrixAndTranslationVector(14.34322337, 50.06843579, 0.5776692915);
+//		va.printDataSetInformation(11);
+//		va.printGpsOfCamera(20369); // frame 1800
+//		va.printGpsOfCamera(20345); // start of telemetry
+		
+//		va.testConversion(new Vector3d(50.06843579, 14.34322337, 0.5776692915));
+		va.testConversion(new Vector3d(14.34322337, 50.06843579, 0.5776692915));
+		//!TODO nejspise nekde prehozene latitude / longitude
 		
 //		Visualizer v = new Visualizer();
 //		JFrame frame = new JFrame("Visualizer");
@@ -47,9 +58,9 @@ public class Main {
 //		OpenCVGrabber grabber = new OpenCVGrabber("C:\\Users\\Milan\\Desktop\\droneVideo\\video\\1_converted.mp4",
 //				"C:/JavaPrograms/thesis/resources/output/");
 		
-//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\droneVideo\\video\\1_converted.mp4");
+		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\droneVideo\\video\\1_converted.mp4");
 //		grabber.showNthFrame(1212);
-//		grabber.showNthFrame(25);
+//		grabber.showNthFrame(1805);
 //		grabber.showNthFrame(6575);
 		//48 vterin
 

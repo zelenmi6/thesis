@@ -11,9 +11,10 @@ import java.sql.Timestamp;
 
 import javax.vecmath.GMatrix;
 import javax.vecmath.GVector;
+import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 
-import Cameras.AbstractCamera;
+import cameras.AbstractCamera;
 import database.VideoPicturesDao;
 import geometry.Calculations;
 import geometry.CameraCalculator;
