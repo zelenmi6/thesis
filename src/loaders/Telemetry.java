@@ -11,7 +11,11 @@ public class Telemetry {
 	public double roll;
 	public double pitch;
 	
-	public Telemetry(Timestamp timestamp, Vector3d coordinates, double heading, double roll, double pitch) {
+	public Telemetry() {
+		
+	}
+	
+	public Telemetry(Timestamp timestamp, Vector3d coordinates, double roll, double pitch, double heading) {
 		super();
 		this.timestamp = timestamp;
 		this.coordinates = coordinates;

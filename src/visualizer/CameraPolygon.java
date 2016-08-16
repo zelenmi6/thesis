@@ -39,13 +39,13 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 	private double pitch = CameraTesting.PITCH; 
 	private double altitude = CameraTesting.ALTITUDE;
 	private double zoom = CameraTesting.ZOOM;
-	private double xOffset = 0;
-	private double yOffset = 0;
-	private boolean drawBoundingPolygon = false;
+	protected double xOffset = 0;
+	protected double yOffset = 0;
+	protected boolean drawBoundingPolygon = false;
 	private boolean [] lineOriginPoint = new boolean[4]; // = false
 	
 	private Point mousePt;
-	private final Vector2d cameraPosition = new Vector2d(0, 0);
+	protected final Vector2d cameraPosition = new Vector2d(0, 0);
 	private Vector3d origin = new Vector3d(); // pre-alocate
 	
 	
@@ -144,7 +144,7 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 		g2.draw(new Line2D.Double(0, windowHeight/2 + yOffset*zoom, windowWidth, windowHeight/2 + yOffset*zoom));
 	}
 	
-	private void drawPolygon(Graphics2D g2) {
+	protected void drawPolygon(Graphics2D g2) {
 		Vector3d [] corners = CameraCalculator.getBoundingPolygon(CameraTesting.FOVh, CameraTesting.FOVv, altitude,
 				roll, pitch, heading);
 		
@@ -180,12 +180,12 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 		drawLine(g2, corners[2], corners[3]);
 		drawLine(g2, corners[3], corners[0]);
 	}
-	private void drawLine(Graphics2D g2, Vector3d pointA, Vector3d pointB) {
+	protected void drawLine(Graphics2D g2, Vector3d pointA, Vector3d pointB) {
 		g2.draw(new Line2D.Double(pointA.x, pointA.y,
 				pointB.x, pointB.y));
 	}
 	
-	private void offsetPoints(Vector3d [] points, double xOffset, double yOffset) {
+	protected void offsetPoints(Vector3d [] points, double xOffset, double yOffset) {
 		for (Vector3d point : points) {
 			point.x += xOffset;
 			point.y += yOffset;
@@ -195,7 +195,7 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 		}
 	}
 	
-	private void drawPoints(Vector3d [] corners, Graphics2D g2) {
+	protected void drawPoints(Vector3d [] corners, Graphics2D g2) {
 		int counter = 1;
 		for (Vector3d point : corners) {
 			Ellipse2D.Double pointToDraw = new Ellipse2D.Double(point.x - CameraTesting.POINT_SIZE/2,
@@ -224,7 +224,7 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 		repaint();
 	}
 	
-	private void drawOriginPointLine(Graphics2D g2, Vector3d[] points) {
+	protected void drawOriginPointLine(Graphics2D g2, Vector3d[] points) {
 		centerOrigin();
 		
 		Stroke origStroke = g2.getStroke();
@@ -240,7 +240,7 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 		g2.setStroke(origStroke);
 	}
 	
-	private void drawBoundingPolygon(Graphics2D g2, Vector3d[] points, int leftOutermostIdx, int rightOutermostIdx) {
+	protected void drawBoundingPolygon(Graphics2D g2, Vector3d[] points, int leftOutermostIdx, int rightOutermostIdx) {
 		try {
 			centerOrigin();
 			

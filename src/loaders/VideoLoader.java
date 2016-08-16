@@ -94,8 +94,8 @@ public class VideoLoader {
 			if (telemetry.timestamp.getTime() - lastTelemetryTime.getTime() < TELEMETRY_INTERVAL_MS)
 				continue;
 			
-			long time = (telemetry.timestamp.getTime() - initialTime.getTime()) / 1000;
-			int frame = Math.round(time * camera.getFps());
+			long time = (telemetry.timestamp.getTime() - initialTime.getTime());
+			int frame = Math.round(time * camera.getFps()) / 1000;
 			dao.addFrame(dataSetId, telemetry, getBoundingPolygon(telemetry), frame);
 			lastTelemetryTime = telemetry.timestamp;
 			System.out.println(telemetry);
@@ -134,6 +134,7 @@ public class VideoLoader {
 		return new double[]{Double.parseDouble(tokens[2]), Double.parseDouble(tokens[1]), Double.parseDouble(tokens[3])};
 	}
 	
+	//!TODO pokud telemetrii neberu, tak ji ani nevyrabet
 	private Telemetry parseTelemetryLine(String telemetry) {
 		String [] tokens = telemetry.split(",");
 		

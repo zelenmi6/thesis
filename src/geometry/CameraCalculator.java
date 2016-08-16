@@ -108,25 +108,25 @@ public class CameraCalculator {
 	}
 	
 	public static Vector3d ray1(double FOVh, double FOVv) {
-		Vector3d ray = new Vector3d(Math.tan(FOVv/2), Math.tan(FOVh/2), -1);
+		Vector3d ray = new Vector3d(Math.tan(FOVh/2), Math.tan(FOVv/2), -1);
 		ray.normalize();
 		return ray;
 	}
 	
 	public static Vector3d ray2(double FOVh, double FOVv) {
-		Vector3d ray = new Vector3d(Math.tan(FOVv/2), -Math.tan(FOVh/2), -1);
+		Vector3d ray = new Vector3d(Math.tan(FOVh/2), -Math.tan(FOVv/2), -1);
 		ray.normalize();
 		return ray;
 	}
 	
 	public static Vector3d ray3(double FOVh, double FOVv) {
-		Vector3d ray = new Vector3d(-Math.tan(FOVv/2), -Math.tan(FOVh/2), -1);
+		Vector3d ray = new Vector3d(-Math.tan(FOVh/2), -Math.tan(FOVv/2), -1);
 		ray.normalize();
 		return ray;
 	}
 	
 	public static Vector3d ray4(double FOVh, double FOVv) {
-		Vector3d ray = new Vector3d(-Math.tan(FOVv/2), Math.tan(FOVh/2), -1);
+		Vector3d ray = new Vector3d(-Math.tan(FOVh/2), Math.tan(FOVv/2), -1);
 		ray.normalize();
 		return ray;
 	}

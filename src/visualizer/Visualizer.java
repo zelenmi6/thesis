@@ -19,14 +19,15 @@ import visualizer.CameraPolygon.Option;
 
 public class Visualizer extends JPanel implements MouseWheelListener {
 	
-	private final int WINDOW_WIDTH = 1024;
-	private final int WINDOW_HEIGHT = 768;
+	protected final int WINDOW_WIDTH = 1024;
+	protected final int WINDOW_HEIGHT = 768;
 	
-	private SliderSet zoomSlider;
+	protected SliderSet zoomSlider;
+	protected CameraPolygon cameraPolygon;
 	
 	
 	public Visualizer() {
-		CameraPolygon cameraPolygon = new CameraPolygon();
+		cameraPolygon = new CameraPolygon();
 		cameraPolygon.addMouseWheelListener(this);
 		setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
 		this.setLayout(new BorderLayout());
@@ -38,7 +39,7 @@ public class Visualizer extends JPanel implements MouseWheelListener {
 		this.add(addOptionsBar(cameraPolygon), BorderLayout.NORTH);
 	}
 	
-	private JPanel addRollAltitudePanel(CameraPolygon cameraPolygon) {
+	protected JPanel addRollAltitudePanel(CameraPolygon cameraPolygon) {
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridLayout(1, 2));
 		panel.add(new SliderSet(CameraParameter.ALTITUDE, CameraTesting.ALTITUDE, 0, 100, SwingConstants.VERTICAL, cameraPolygon));
@@ -46,7 +47,7 @@ public class Visualizer extends JPanel implements MouseWheelListener {
 		return panel;
 	}
 	
-	private JPanel addHeadingPitchPanel(CameraPolygon cameraPolygon) {
+	protected JPanel addHeadingPitchPanel(CameraPolygon cameraPolygon) {
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridLayout(2, 1));
 		panel.add(new SliderSet(CameraParameter.HEADING, CameraTesting.HEADING, -180, 180, SwingConstants.HORIZONTAL, cameraPolygon));
@@ -54,7 +55,7 @@ public class Visualizer extends JPanel implements MouseWheelListener {
 		return panel;
 	}
 	
-	private JPanel addOptionsBar(CameraPolygon cameraPolygon) {
+	protected JPanel addOptionsBar(CameraPolygon cameraPolygon) {
 		JPanel panel = new JPanel();
 		panel.setLayout(new FlowLayout());
 		

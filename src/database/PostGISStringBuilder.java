@@ -3,6 +3,8 @@ package database;
 import javax.vecmath.Vector2d;
 import javax.vecmath.Vector3d;
 
+import org.postgis.Polygon;
+
 import loaders.Telemetry;
 
 public class PostGISStringBuilder {

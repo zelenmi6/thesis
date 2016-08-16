@@ -46,8 +46,11 @@ public class VideoAnalyzer {
 		VideoPicturesDao dao = VideoPicturesDao.getInstance();
 		try {
 			double [] coord = dao.getCameraCoordinates(frameId);
-			System.out.println("x: " + coord[0] + ", y: " + coord[1] + ", z: " + coord[2]);
+			double [] angles = dao.getCameraAngles(frameId);
+			System.out.println("x: " + coord[0] + ", y: " + coord[1] + ", z: " + coord[2] + ", roll: " + Math.toDegrees(angles[0])
+					+ ", pitch: " + Math.toDegrees(angles[1]) + ", yaw: " + Math.toDegrees(angles[2]));
 			convertCartToGps(coord[0], coord[1], coord[2]);
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

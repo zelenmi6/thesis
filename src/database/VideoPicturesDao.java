@@ -7,9 +7,14 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.vecmath.Vector3d;
+
+import org.postgis.LinearRing;
+import org.postgis.Polygon;
 
 import cameras.AbstractCamera;
 import loaders.Telemetry;
@@ -20,8 +25,8 @@ public class VideoPicturesDao {
 	private Connection connection = null;
 	PostGISStringBuilder postgisBuilder = new PostGISStringBuilder();
 	PreparedStatement addMonitoredAreaNameOnly, getMonitoredAreaId, originSet, setOrigin,
-					  addDataSet, isaVideo, getDataSetInformation,
-					  addFrame, isaVideoFrame, getCameraCoordinates;
+					  addDataSet, isaVideo, getDataSetInformation, getDataSetCoordinates,
+					  addFrame, isaVideoFrame, getCameraCoordinates, getCameraAngles, frameContainingPoint;
 
 	protected VideoPicturesDao() {
 		try {
@@ -59,11 +64,18 @@ public class VideoPicturesDao {
 					"SELECT (ds.timestamp + interval '1 second' * frames.frame_number / 25) \"Time of Frame\","
 							+ " frames.frame_id \"id\", frames.frame_number \"Frame number\","
 							+ "(interval '1 second' * frames.frame_number / 25) \"Video time\", "
-							+ "ST_AsText(frames.bounding_polygon) poly  FROM "
+							+ "ST_AsText(frames.bounding_polygon) poly, " //5
+							+ "camera_roll roll, " //6
+							+ "camera_pitch pitch," //7
+							+ "camera_heading heading FROM " //8
 							+ "(SELECT * FROM \"DataSet\" WHERE id = ?) as ds "
 							+ "inner join (SELECT * FROM \"Frame\" f "
 							+ "inner join \"VideoFrame\" vf on f.id = vf.frame_id) as frames on ds.id = frames.data_set_id "
 							+ "ORDER BY \"Video time\" ASC;");
+			
+			getDataSetCoordinates = connection.prepareStatement(
+					"SELECT ST_AsText(bounding_polygon) poly FROM \"Frame\" "
+					+ "WHERE data_set_id = ?");
 
 			/////////////////////////// Frames /////////////////////////////
 
@@ -77,6 +89,9 @@ public class VideoPicturesDao {
 			
 			getCameraCoordinates = connection.prepareStatement("SELECT ST_X(camera_coordinates) \"x\", "
 					+ "ST_Y(camera_coordinates) \"y\", ST_Z(camera_coordinates) \"z\" "
+					+ "FROM \"Frame\" WHERE id = ?");
+			
+			getCameraAngles = connection.prepareStatement("SELECT camera_roll roll, camera_pitch pitch, camera_heading heading "
 					+ "FROM \"Frame\" WHERE id = ?");
 
 		} catch (SQLException e) {
@@ -144,6 +159,22 @@ public class VideoPicturesDao {
 		    System.out.println("");
 		}
 	}
+	
+	public List<Vector3d[]> getDataSetCoordinates(int dataSetId) throws SQLException {
+		getDataSetCoordinates.setInt(1, dataSetId);
+		ResultSet rs = getDataSetCoordinates.executeQuery();
+		List<Vector3d[]> coordinates = new ArrayList<Vector3d[]>();
+		while (rs.next()) {
+			Vector3d [] corners = new Vector3d[4]; //!TODO *** Magic number 4 ***
+			Polygon pl = new Polygon(rs.getString(1));
+			LinearRing lr = (LinearRing)pl.getSubGeometry(0);
+			for (int i = 0; i < lr.getPoints().length - 1; i ++) {
+				corners[i] = new Vector3d(lr.getPoint(i).x, lr.getPoint(i).y, 0);
+			}
+			coordinates.add(corners);
+		}
+		return coordinates;
+	}
 
 	public void addFrame(int dataSetId, Telemetry telemetry, Vector3d[] boundingPolygon, int frameNumber)
 			throws SQLException {
@@ -188,6 +219,15 @@ public class VideoPicturesDao {
 		}
 		return new double[]{rs.getDouble(1), rs.getDouble(2), rs.getDouble(3)};
 //		System.out.println("x: " + rs.getDouble(1) + ", y: " + rs.getDouble(2) + ", z: " + rs.getDouble(3));
+	}
+	
+	public double [] getCameraAngles(int frameId) throws SQLException {
+		getCameraAngles.setInt(1, frameId);
+		ResultSet rs = getCameraAngles.executeQuery();
+		if (!rs.next()) {
+			throw new SQLException("Error retrieving camera coordinates");
+		}
+		return new double[]{rs.getDouble(1), rs.getDouble(2), rs.getDouble(3)};
 	}
 
 	public void setMonitoredAreaOrigin(int monitoredArea, double[] lonLatAlt) throws SQLException {
