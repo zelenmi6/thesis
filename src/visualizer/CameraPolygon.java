@@ -38,7 +38,7 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 	private double roll = CameraTesting.ROLL;
 	private double pitch = CameraTesting.PITCH; 
 	private double altitude = CameraTesting.ALTITUDE;
-	private double zoom = CameraTesting.ZOOM;
+	protected double zoom = CameraTesting.ZOOM;
 	protected double xOffset = 0;
 	protected double yOffset = 0;
 	protected boolean drawBoundingPolygon = false;
@@ -69,6 +69,7 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 		g2.drawString("X: " + (translateXToCenter(mouseX) / zoom - xOffset) + " , Y: " + (translateYToCenter(mouseY) / zoom - yOffset), mouseX, mouseY);
 		drawAxes(g2);
 		drawPolygon(g2);
+		drawPoint(g2);
 	}
 	
 	public void valueChanged(CameraParameter parameter, int value) {
@@ -127,12 +128,12 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 		return y - windowHeight / 2;
 	}
 	
-	private double translateCenterToX(double x) {
+	protected double translateCenterToX(double x) {
 		double windowWidth = this.getSize().getWidth();
 		return x + windowWidth / 2;
 	}
 	
-	private double translateCenterToY(double y) {
+	protected double translateCenterToY(double y) {
 		double windowHeight = this.getSize().getHeight();
 		return y + windowHeight / 2;
 	}
@@ -207,6 +208,10 @@ public class CameraPolygon extends JPanel implements MouseMotionListener {
 					(int)(point.y + CameraTesting.POINT_SIZE));
 			counter ++;
 		}
+	}
+	
+	protected void drawPoint(Graphics2D g2) {
+		
 	}
 	
 	public void optionChanged(Option option) {
