@@ -15,18 +15,22 @@ import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.video.Video;
+
+import camera_calibration.MatSerializer;
 
 public class TransformEstimate {
 	static{ System.loadLibrary("opencv_java300"); }
 	
 	// SIFT a SURF jsou v Jave bugly
 	FeatureDetector featureDetector = FeatureDetector.create(FeatureDetector.ORB);
-	DescriptorExtractor descriptorExtractor = DescriptorExtractor.create(DescriptorExtractor.ORB);
-	DescriptorMatcher descriptorMatcher = DescriptorMatcher.create(6); // BRUTEFORCE_SL2 = 6**
+	DescriptorExtractor descriptorExtractor = DescriptorExtractor.create(DescriptorExtractor.ORB );
+	DescriptorMatcher descriptorMatcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_SL2); // BRUTEFORCE_SL2 = 6**
 	
 	public TransformEstimate(String img1Path, String img2Path) {
 		try {
@@ -53,10 +57,10 @@ public class TransformEstimate {
 //			matches = new MatOfDMatch(matches.submat(100, 120, 0, 1));
 			
 //			Mat[] points = getPointMatricesFromDescriptors(descriptor1, descriptor2, matches);
-			Mat[] points = getPointMatricesFromKeyPoints(keyPoints1, keyPoints2, matches);
+			Mat[] pointsWithZ = getPointMatricesFromKeyPointsWithZ(keyPoints1, keyPoints2, matches);
 //			printKeyPointMatrices(keyPoints1, keyPoints2);
 //			printMatrices(descriptor1, descriptor2);
-			printMatrices(points[0], points[1]);
+			printMatrices(pointsWithZ[0], pointsWithZ[1]);
 			
 			showMatches(matFrame1, keyPoints1, matFrame2, keyPoints2, matches, false);
 			
@@ -66,12 +70,25 @@ public class TransformEstimate {
 //			Mat result = Video.estimateRigidTransform(matFrame1, matFrame2, true);
 //			Mat out = new Mat(3, 4, CvType.CV_8SC3);
 			Mat inliers = new Mat();
-			Mat out = new Mat();
-			int result = org.opencv.calib3d.Calib3d.estimateAffine3D(points[0], points[1], out, inliers);
-			printMatrix(out);
+			Mat affineRotationMatrix = new Mat();
+			int result = org.opencv.calib3d.Calib3d.estimateAffine3D(pointsWithZ[0], pointsWithZ[1], affineRotationMatrix, inliers, 3, 0.99);
+			
+			Mat[] points = getPointMatricesFromKeyPoints(keyPoints1, keyPoints2, matches);
+			MatOfPoint2f matOfPoint1 = convertMatToMatOfPoint2f(points[0]);
+			MatOfPoint2f matOfPoint2 = convertMatToMatOfPoint2f(points[1]);
+			Mat homographyMatrix = org.opencv.calib3d.Calib3d.findHomography(matOfPoint1, matOfPoint2);
+			
+			printMatrix(affineRotationMatrix, "affine rotation matrix");
+			printMatrix(homographyMatrix, "homography matrix");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private MatOfPoint2f convertMatToMatOfPoint2f(Mat mat) {
+		MatOfPoint mpoints = new MatOfPoint(mat);
+		MatOfPoint2f points2f = new MatOfPoint2f(mpoints.toArray());
+		return points2f;
 	}
 	
 	private void showMatches(Mat matFrame1, MatOfKeyPoint keyPoints1, Mat matFrame2,
@@ -85,7 +102,7 @@ public class TransformEstimate {
 	
 	private Mat getImage(String path) throws IOException {
 		BufferedImage image = ImageIO.read(new File(path));
-		Mat matFrame = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8UC1);
+		Mat matFrame = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8UC3);
 		byte[] pixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 		matFrame.put(0, 0, pixels);
 //		Imshow ims = new Imshow("From video source ... ");
@@ -95,8 +112,8 @@ public class TransformEstimate {
 	
 	private Mat[] getPointMatricesFromDescriptors(Mat desc1, Mat desc2, MatOfDMatch matches) {
 		List<DMatch> listOfMatches = matches.toList();
-		Mat pts1 = new Mat(listOfMatches.size(), 3, CvType.CV_8UC1);
-		Mat pts2 = new Mat(listOfMatches.size(), 3, CvType.CV_8UC1);
+		Mat pts1 = new Mat(listOfMatches.size(), 3, CvType.CV_8UC3);
+		Mat pts2 = new Mat(listOfMatches.size(), 3, CvType.CV_8UC3);
 		for (int i = 0; i < listOfMatches.size(); i ++) {
 			int queryIdx = listOfMatches.get(i).queryIdx;
 			int trainIdx = listOfMatches.get(i).trainIdx;
@@ -119,9 +136,32 @@ public class TransformEstimate {
 		List<DMatch> listOfMatches = matches.toList();
 		List<KeyPoint> keyPoints1 = kp1.toList();
 		List<KeyPoint> keyPoints2 = kp2.toList();
+		Mat pts1 = new Mat(listOfMatches.size(), 2, CvType.CV_32S);
+		Mat pts2 = new Mat(listOfMatches.size(), 2, CvType.CV_32S);
+		
+		for (int i = 0; i < listOfMatches.size(); i ++) {
+			int queryIdx = listOfMatches.get(i).queryIdx;
+			int trainIdx = listOfMatches.get(i).trainIdx;
+			
+//			pts1.get(i, 0)[0] = keyPoints1.get(queryIdx).pt.x;
+			pts1.put(i, 0, new double[]{keyPoints1.get(queryIdx).pt.x});
+//			System.out.println(keyPoints1.get(queryIdx).pt.x + "|||" + pts1.get(i, 0)[0]);
+			pts1.put(i, 1, new double[]{keyPoints1.get(queryIdx).pt.y});
+			
+			pts2.put(i, 0, new double[]{keyPoints2.get(trainIdx).pt.x});
+			pts2.put(i, 1, new double[]{keyPoints2.get(trainIdx).pt.y});
+		}
+		
+		return new Mat[]{pts1, pts2};
+	}
+	
+	private Mat[] getPointMatricesFromKeyPointsWithZ(MatOfKeyPoint kp1, MatOfKeyPoint kp2, MatOfDMatch matches) {
+		List<DMatch> listOfMatches = matches.toList();
+		List<KeyPoint> keyPoints1 = kp1.toList();
+		List<KeyPoint> keyPoints2 = kp2.toList();
 		Mat pts1 = new Mat(listOfMatches.size(), 3, CvType.CV_32S);
 		Mat pts2 = new Mat(listOfMatches.size(), 3, CvType.CV_32S);
-		int Z = 1;
+		int Z = 30;
 		
 		for (int i = 0; i < listOfMatches.size(); i ++) {
 			int queryIdx = listOfMatches.get(i).queryIdx;
@@ -141,10 +181,24 @@ public class TransformEstimate {
 		return new Mat[]{pts1, pts2};
 	}
 	
-	private void printMatrix(Mat matrix) {
+	private void printMatrix(Mat matrix, String description) {
+		System.out.println();
+		System.out.println("Printing " + description);
 		for (int i = 0; i < matrix.height(); i ++) {
-			System.out.println(matrix.get(i, 0)[0] + " " + matrix.get(i, 1)[0] + " " + matrix.get(i, 2)[0] + " " + matrix.get(i, 3)[0]);
+			for (int j = 0; j < matrix.width(); j ++) {
+				System.out.print(matrix.get(i, j)[0] + " ");
+			}
+			System.out.println();
 		}
+		double x, y, z;
+		x = Math.atan2(matrix.get(2, 1)[0], matrix.get(2, 2)[0]);
+		y = Math.atan2(-matrix.get(2, 0)[0], Math.sqrt(matrix.get(2, 1)[0] * matrix.get(2, 1)[0] + 
+				matrix.get(2, 2)[0] * matrix.get(2, 2)[0] ));
+		z = Math.atan2(matrix.get(1, 0)[0], matrix.get(0, 0)[0]);
+		System.out.println("Axes angles: ");
+		System.out.println("x: " + Math.toDegrees(x));
+		System.out.println("y: " + Math.toDegrees(y));
+		System.out.println("z: " + Math.toDegrees(z));
 	}
 	
 	private void printKeyPointMatrices(MatOfKeyPoint matrix1, MatOfKeyPoint matrix2) {

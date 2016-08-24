@@ -3,12 +3,16 @@ import java.util.List;
 import javax.swing.JFrame;
 import javax.vecmath.Vector3d;
 
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
 import org.postgis.LineString;
 import org.postgis.LinearRing;
 import org.postgis.Point;
 import org.postgis.Polygon;
 
 import analyzers.VideoAnalyzer;
+import camera_calibration.CameraCalibration;
+import camera_calibration.MatSerializer;
 import cameras.AbstractCamera;
 import cameras.Hero3PlusBlack;
 import cameras.Hero3PlusBlack.Hero3PlusBlackFieldOfView;
@@ -26,6 +30,10 @@ import visualizer.Visualizer;
 public class Main {
 	
 	public static void main(String[] args) throws Exception {
+		
+		CameraCalibration calib = new CameraCalibration();
+		calib.runCalibration(null);
+		
 //		
 //		VideoAnalyzer va = new VideoAnalyzer();
 //		va.setRotationMatrixAndTranslationVector(14.34322337, 50.06843579, 0.5776692915);
@@ -57,8 +65,17 @@ public class Main {
 //		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\pokus1.jpg",
 //				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\pokus2.jpg");
 		
-		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\resized1.jpg",
-				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\resized2.jpg");
+//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\resized1.jpg",
+//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\resized2.jpg");
+		
+//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\malyposun.jpg",
+//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\malyposun - copy.jpg");
+		
+//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\multipleRot.jpg",
+//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\multipleRot2.jpg");
+		
+//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\wall1.jpg",
+//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\wall2.jpg");
 		
 //		DataSetVisualizer v = new DataSetVisualizer();
 //		JFrame frame = new JFrame("Visualizer");
