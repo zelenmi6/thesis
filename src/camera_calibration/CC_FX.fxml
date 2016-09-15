@@ -15,9 +15,9 @@
 					<Insets top="10" bottom="10" />
 				</padding>
 				<Label text="Boards #" />
-				<TextField fx:id="numBoards" text="20" maxWidth="50" />
+				<TextField fx:id="numBoards" text="10" maxWidth="50" />
 				<Label text="Horizontal corners #" />
-				<TextField fx:id="numHorCorners" text="9" maxWidth="50" />
+				<TextField fx:id="numHorCorners" text="6" maxWidth="50" />
 				<Label text="Vertical corners #" />
 				<TextField fx:id="numVertCorners" text="6" maxWidth="50" />
 				<Button fx:id="applyButton" alignment="center" text="Apply" onAction="#updateSettings" />

@@ -43,7 +43,7 @@ public class DataSetVisualizer extends Visualizer {
 				cameraPolygon.setCorners(corners);
 				currentTime = new Date();
 				if (previousTime != null)
-					correction = previousTime.getTime() - currentTime.getTime();
+					correction = currentTime.getTime() - previousTime.getTime();
 				System.out.println("Time: " + (int)((telemetryStartTime + step) / 60) + ":" + (telemetryStartTime + step) % 60
 						+ " correction: " + correction);
 				TimeUnit.MILLISECONDS.sleep(timeStep - correction);

@@ -164,6 +164,7 @@ public class CameraCalculator {
 		
 		// Using an external library to rotate vectors
 		Matrix rotationMatrix = new Matrix(new double[][]{{m00, m01, m02}, {m10, m11, m12}, {m20, m21, m22}});
+//		printRotationDegrees(rotationMatrix);
 		Matrix ray1Matrix = new Matrix(new double[][]{{ray1.x}, {ray1.y}, {ray1.z}});
 		Matrix ray2Matrix = new Matrix(new double[][]{{ray2.x}, {ray2.y}, {ray2.z}});
 		Matrix ray3Matrix = new Matrix(new double[][]{{ray3.x}, {ray3.y}, {ray3.z}});
@@ -181,6 +182,17 @@ public class CameraCalculator {
 		Vector3d[] rayArray = new Vector3d[]{rotatedRay1, rotatedRay2, rotatedRay3, rotatedRay4};
 		
 		return rayArray;
+	}
+	
+	private static void printRotationDegrees(Matrix rotationMatrix) {
+		double x, y, z;
+		x = Math.atan2(rotationMatrix.get(2, 1), rotationMatrix.get(2, 2)); //roll
+		y = Math.atan2(-rotationMatrix.get(2, 0), Math.sqrt(rotationMatrix.get(2, 1) * rotationMatrix.get(2, 1) + 
+				rotationMatrix.get(2, 2) * rotationMatrix.get(2, 2) )); //pitch
+		z = Math.atan2(rotationMatrix.get(1, 0), rotationMatrix.get(0, 0)); //yaw
+		System.out.println("Roll: " + Math.toDegrees(x));
+		System.out.println("Pitch: " + Math.toDegrees(y));
+		System.out.println("Yaw: " + Math.toDegrees(z));
 	}
 	
 	public static Vector3d findRayGroundIntersection(Vector3d ray, Vector3d origin) {

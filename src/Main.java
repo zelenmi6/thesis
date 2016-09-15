@@ -16,6 +16,7 @@ import camera_calibration.MatSerializer;
 import cameras.AbstractCamera;
 import cameras.Hero3PlusBlack;
 import cameras.Hero3PlusBlack.Hero3PlusBlackFieldOfView;
+import constants.CameraTesting;
 import database.VideoPicturesDao;
 import geometry.Calculations;
 import geometry.CameraCalculator;
@@ -24,6 +25,7 @@ import loaders.VideoLoader;
 import video.FrameGrabber;
 import video.OpenCVGrabber;
 import video.TransformEstimate;
+import videoVisualizer.VideoVisualizer;
 import visualizer.DataSetVisualizer;
 import visualizer.Visualizer;
 
@@ -31,12 +33,15 @@ public class Main {
 	
 	public static void main(String[] args) throws Exception {
 		
+//		VideoVisualizer vv = new VideoVisualizer();
+		
 		CameraCalibration calib = new CameraCalibration();
 		calib.runCalibration(null);
 		
 //		
 //		VideoAnalyzer va = new VideoAnalyzer();
-//		va.setRotationMatrixAndTranslationVector(14.34322337, 50.06843579, 0.5776692915);
+//		va.setRotationMatrixAndTranslationVector(14.1209483, 50.070355, 0);
+//		va.testConversion(new Vector3d(14.120762, 50.070322, 4));
 //		va.printDataSetInformation(30);
 //		va.printGpsOfCamera(47145); // frame 1800
 //		va.printGpsOfCamera(20345); // start of telemetry
@@ -77,6 +82,12 @@ public class Main {
 //		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\wall1.jpg",
 //				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\wall2.jpg");
 		
+//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3053.png",
+//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3055.png");
+		
+//		CameraCalculator.getBoundingPolygon(CameraTesting.FOVh, CameraTesting.FOVv, 10, CameraTesting.ROLL,
+//				CameraTesting.PITCH, CameraTesting.HEADING);
+		
 //		DataSetVisualizer v = new DataSetVisualizer();
 //		JFrame frame = new JFrame("Visualizer");
 //		frame.setContentPane(v);
@@ -84,7 +95,8 @@ public class Main {
 //		frame.pack();
 //		frame.setLocationRelativeTo(null);
 //		frame.setVisible(true);
-//		v.visualizeDataSet(30, 1000, 48);
+////		v.visualizeDataSet(30, 1000, 48); // original data
+//		v.visualizeDataSet(33, 40, 0);
 		
 		
 //		va.testConversion(new Vector3d(50.06843579, 14.34322337, 0.5776692915));
@@ -103,8 +115,9 @@ public class Main {
 //		frame.setVisible(true);
 		
 //		AbstractCamera camera = new Hero3PlusBlack(Hero3PlusBlackFieldOfView.WIDE_16X9, 25);
-//		VideoLoader vl = new VideoLoader("nothing yet", "C:\\Users\\Milan\\Desktop\\droneVideo\\parsed\\2016_07_25_11_28_14.csv",
-//				"louka", camera, (1212/camera.getFps() * 1000));
+//		VideoLoader vl = new VideoLoader("nothing yet", "C:/Users/Milan/Desktop/26.8.16 data/parsed_logs/2016_08_26_11_57_56.csv",
+//				"louka2", camera, 0);
+//		(1212/camera.getFps() * 1000)
 
 		
 //		OpenCVGrabber grabber = new OpenCVGrabber("C:\\Users\\Milan\\Desktop\\droneVideo\\video\\1_converted.mp4",
@@ -112,10 +125,14 @@ public class Main {
 		
 //		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\droneVideo\\video\\1_converted.mp4");
 //		grabber.showNthFrame(5000);
+//		Thread.sleep(5000);
 //		grabber.showNthFrame(1805);
+//		Thread.sleep(5000);
 //		grabber.showNthFrame(47145);
 		//48 vterin
-
+//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\26.8.16 data\\videos\\GOPR3989.MP4");
+//		grabber.showNthFrame(3053, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.showNthFrame(3055, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 
 //		System.out.println("Program has finished");
 	}

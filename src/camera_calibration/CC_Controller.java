@@ -129,8 +129,8 @@ public class CC_Controller {
 			if (!this.cameraActive)
 			{
 				// start the video capture
-				this.capture.open(0);
-//				capture.open("C:\\Users\\Milan\\Desktop\\calibration\\GOPR3984.MP4");
+				this.capture.open(1);
+//				capture.open("C:\\Users\\Milan\\Desktop\\calibration\\GOPR4005.MP4");
 				
 				// is the video stream available?
 				if (this.capture.isOpened())

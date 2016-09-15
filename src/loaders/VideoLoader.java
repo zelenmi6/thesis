@@ -21,7 +21,8 @@ import geometry.CameraCalculator;
 
 public class VideoLoader {
 	
-	private final long TELEMETRY_INTERVAL_MS = 1000;
+	private final long TELEMETRY_INTERVAL_MS = 0;
+	private final double PITCH_OFFSET_DEGREES = -45;
 	
 	private AbstractCamera camera = null;
 	private VideoPicturesDao dao = VideoPicturesDao.getInstance();
@@ -146,7 +147,7 @@ public class VideoLoader {
 		return new Telemetry(new Timestamp(Long.parseLong(tokens[0]) + telemetryStartTime.getTime()),
 				cartCoords,
 				Math.toRadians(Double.parseDouble(tokens[4])),
-				Math.toRadians(Double.parseDouble(tokens[5])),
+				Math.toRadians(Double.parseDouble(tokens[5]) + PITCH_OFFSET_DEGREES),
 				Math.toRadians(Double.parseDouble(tokens[6])));
 	}
 }

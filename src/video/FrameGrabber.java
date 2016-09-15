@@ -3,6 +3,7 @@ package video;
 import org.opencv.core.Mat;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.Videoio;
+import org.opencv.imgcodecs.Imgcodecs;
 
 public class FrameGrabber {
 	static{ System.loadLibrary("opencv_java300"); }
@@ -27,6 +28,14 @@ public class FrameGrabber {
 		cap.set(1, idx); // CV_CAP_PROP_POS_FRAMES == 1
 		cap.read(matFrame);
 		ims.showImage(matFrame);
+	}
+	
+	public void showNthFrame(int idx, String outputDirectory) {
+		cap.set(1, idx); // CV_CAP_PROP_POS_FRAMES == 1
+		cap.read(matFrame);// ?
+		cap.retrieve(matFrame);// ?
+//		ims.showImage(matFrame);
+		Imgcodecs.imwrite(outputDirectory + idx + ".png", matFrame);
 	}
 
 }

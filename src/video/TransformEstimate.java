@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -60,9 +61,9 @@ public class TransformEstimate {
 			Mat[] pointsWithZ = getPointMatricesFromKeyPointsWithZ(keyPoints1, keyPoints2, matches);
 //			printKeyPointMatrices(keyPoints1, keyPoints2);
 //			printMatrices(descriptor1, descriptor2);
-			printMatrices(pointsWithZ[0], pointsWithZ[1]);
+//			printMatrices(pointsWithZ[0], pointsWithZ[1]);
 			
-			showMatches(matFrame1, keyPoints1, matFrame2, keyPoints2, matches, false);
+			showMatches(matFrame1, keyPoints1, matFrame2, keyPoints2, matches, true);
 			
 //			System.out.println(keyPoints1.toList().size());
 //			System.out.println(keyPoints2.toList().size());
@@ -77,11 +78,29 @@ public class TransformEstimate {
 			MatOfPoint2f matOfPoint1 = convertMatToMatOfPoint2f(points[0]);
 			MatOfPoint2f matOfPoint2 = convertMatToMatOfPoint2f(points[1]);
 			Mat homographyMatrix = org.opencv.calib3d.Calib3d.findHomography(matOfPoint1, matOfPoint2);
+			decomposeHomography(homographyMatrix, "resources/camera/cameraMatrix_gopro_0.23.json");
 			
-			printMatrix(affineRotationMatrix, "affine rotation matrix");
-			printMatrix(homographyMatrix, "homography matrix");
+//			printMatrix(affineRotationMatrix, "affine rotation matrix");
+			printRotationMatrix(homographyMatrix, "homography matrix");
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	private void decomposeHomography(Mat homographyMatrix, String cameraMatrixPath) throws IOException {
+		List<Mat> rotations = new ArrayList<Mat>();
+		List<Mat> translations = new ArrayList<Mat>();
+		List<Mat> normals = new ArrayList<Mat>();
+		String fileContent = MatSerializer.loadStringFromFile(cameraMatrixPath);
+		Mat cameraMat = MatSerializer.matFromJson(fileContent);
+		org.opencv.calib3d.Calib3d.decomposeHomographyMat(homographyMatrix, cameraMat, rotations, translations, normals);
+		
+		for (Mat rotation : rotations) {
+			printRotationMatrix(rotation, "Rotation matrix");
+		}
+		
+		for (Mat translation : translations) {
+			printGeneralMatrix(translation, "Translation");
 		}
 	}
 	
@@ -96,7 +115,7 @@ public class TransformEstimate {
 		if (!show) return;
 		Mat imgMatches = new Mat();
 		org.opencv.features2d.Features2d.drawMatches(matFrame1, keyPoints1, matFrame2, keyPoints2, matches, imgMatches);
-		Imshow ims = new Imshow("From video source ... ");
+		Imshow ims = new Imshow("Matches");
 		ims.showImage(imgMatches);
 	}
 	
@@ -181,7 +200,7 @@ public class TransformEstimate {
 		return new Mat[]{pts1, pts2};
 	}
 	
-	private void printMatrix(Mat matrix, String description) {
+	private void printRotationMatrix(Mat matrix, String description) {
 		System.out.println();
 		System.out.println("Printing " + description);
 		for (int i = 0; i < matrix.height(); i ++) {
@@ -191,14 +210,24 @@ public class TransformEstimate {
 			System.out.println();
 		}
 		double x, y, z;
-		x = Math.atan2(matrix.get(2, 1)[0], matrix.get(2, 2)[0]);
+		x = Math.atan2(matrix.get(2, 1)[0], matrix.get(2, 2)[0]); //roll
 		y = Math.atan2(-matrix.get(2, 0)[0], Math.sqrt(matrix.get(2, 1)[0] * matrix.get(2, 1)[0] + 
-				matrix.get(2, 2)[0] * matrix.get(2, 2)[0] ));
-		z = Math.atan2(matrix.get(1, 0)[0], matrix.get(0, 0)[0]);
+				matrix.get(2, 2)[0] * matrix.get(2, 2)[0] )); //pitch
+		z = Math.atan2(matrix.get(1, 0)[0], matrix.get(0, 0)[0]); //yaw
 		System.out.println("Axes angles: ");
-		System.out.println("x: " + Math.toDegrees(x));
-		System.out.println("y: " + Math.toDegrees(y));
-		System.out.println("z: " + Math.toDegrees(z));
+		System.out.println("x (roll): " + Math.toDegrees(x));
+		System.out.println("y (pitch): " + Math.toDegrees(y));
+		System.out.println("z (yaw): " + Math.toDegrees(z));
+	}
+	
+	private void printGeneralMatrix(Mat matrix, String description) {
+		System.out.println("\nPrinting " + description);
+		for (int i = 0; i < matrix.height(); i ++) {
+			for (int j = 0; j < matrix.width(); j ++) {
+				System.out.print(matrix.get(i, j)[0] + " ");
+			}
+			System.out.println();
+		}
 	}
 	
 	private void printKeyPointMatrices(MatOfKeyPoint matrix1, MatOfKeyPoint matrix2) {
