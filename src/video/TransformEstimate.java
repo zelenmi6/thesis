@@ -5,6 +5,7 @@ import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -18,6 +19,7 @@ import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Point;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
@@ -26,7 +28,8 @@ import org.opencv.video.Video;
 import camera_calibration.MatSerializer;
 
 public class TransformEstimate {
-	static{ System.loadLibrary("opencv_java300"); }
+//	static{ System.loadLibrary("opencv_java300"); }
+	static{ System.loadLibrary("libopencv_java310"); }
 	
 	// SIFT a SURF jsou v Jave bugly
 	FeatureDetector featureDetector = FeatureDetector.create(FeatureDetector.ORB);
@@ -35,49 +38,78 @@ public class TransformEstimate {
 	
 	public TransformEstimate(String img1Path, String img2Path) {
 		try {
-			Mat matFrame1 = getImage(img1Path);
-			Mat matFrame2 = getImage(img2Path);
+			Mat imObject = getImage(img1Path);
+			Mat imgScene = getImage(img2Path);
 			
 			// Key point detection
-			MatOfKeyPoint keyPoints1 = new MatOfKeyPoint();
-			MatOfKeyPoint keyPoints2 = new MatOfKeyPoint();
-			featureDetector.detect(matFrame1, keyPoints1);
-			featureDetector.detect(matFrame2, keyPoints2);
+			MatOfKeyPoint keypointsObject = new MatOfKeyPoint();
+			MatOfKeyPoint keypointsScene = new MatOfKeyPoint();
+			featureDetector.detect(imObject, keypointsObject);
+			featureDetector.detect(imgScene, keypointsScene);
 			
 			// Descriptor extraction
-			Mat descriptor1 = new Mat();
-			Mat descriptor2 = new Mat();
-			descriptorExtractor.compute(matFrame1, keyPoints1, descriptor1);
-			descriptorExtractor.compute(matFrame2, keyPoints2, descriptor2);
+			Mat descriptorObject = new Mat();
+			Mat descriptorScene = new Mat();
+			descriptorExtractor.compute(imObject, keypointsObject, descriptorObject);
+			descriptorExtractor.compute(imgScene, keypointsScene, descriptorScene);
 			
 			// Descriptor matching
 			MatOfDMatch matches = new MatOfDMatch();
-			descriptorMatcher.match(descriptor1, descriptor2, matches);
+			descriptorMatcher.match(descriptorObject, descriptorScene, matches);
+			List<DMatch> matchesList = matches.toList();
 			
 			// orezani matchu
 //			matches = new MatOfDMatch(matches.submat(100, 120, 0, 1));
 			
 //			Mat[] points = getPointMatricesFromDescriptors(descriptor1, descriptor2, matches);
-			Mat[] pointsWithZ = getPointMatricesFromKeyPointsWithZ(keyPoints1, keyPoints2, matches);
+//			Mat[] pointsWithZ = getPointMatricesFromKeyPointsWithZ(keyPoints1, keyPoints2, matches);
 //			printKeyPointMatrices(keyPoints1, keyPoints2);
 //			printMatrices(descriptor1, descriptor2);
 //			printMatrices(pointsWithZ[0], pointsWithZ[1]);
 			
-			showMatches(matFrame1, keyPoints1, matFrame2, keyPoints2, matches, true);
+			showMatches(imObject, keypointsObject, imgScene, keypointsScene, matches, false);
 			
 //			System.out.println(keyPoints1.toList().size());
 //			System.out.println(keyPoints2.toList().size());
 			
 //			Mat result = Video.estimateRigidTransform(matFrame1, matFrame2, true);
 //			Mat out = new Mat(3, 4, CvType.CV_8SC3);
-			Mat inliers = new Mat();
-			Mat affineRotationMatrix = new Mat();
-			int result = org.opencv.calib3d.Calib3d.estimateAffine3D(pointsWithZ[0], pointsWithZ[1], affineRotationMatrix, inliers, 3, 0.99);
+//			Mat inliers = new Mat();
+//			Mat affineRotationMatrix = new Mat();
+//			int result = org.opencv.calib3d.Calib3d.estimateAffine3D(pointsWithZ[0], pointsWithZ[1], affineRotationMatrix, inliers, 3, 0.99);
 			
-			Mat[] points = getPointMatricesFromKeyPoints(keyPoints1, keyPoints2, matches);
-			MatOfPoint2f matOfPoint1 = convertMatToMatOfPoint2f(points[0]);
-			MatOfPoint2f matOfPoint2 = convertMatToMatOfPoint2f(points[1]);
-			Mat homographyMatrix = org.opencv.calib3d.Calib3d.findHomography(matOfPoint1, matOfPoint2);
+//			Mat[] points = getPointMatricesFromKeyPoints(keyPoints1, keyPoints2, matches);
+//			MatOfPoint2f matOfPoint1 = convertMatToMatOfPoint2f(points[0]);
+//			MatOfPoint2f matOfPoint2 = convertMatToMatOfPoint2f(points[1]);
+			
+			LinkedList<DMatch> goodMatches = new LinkedList<DMatch>();
+			MatOfDMatch gm = new MatOfDMatch();
+			
+			for (int i = 0; i < descriptorObject.rows(); i++) {
+				goodMatches.addLast(matchesList.get(i));
+			}
+			
+			gm.fromList(goodMatches);
+			
+			LinkedList<Point> objList = new LinkedList<Point>();
+			LinkedList<Point> sceneList = new LinkedList<Point>();
+			
+			List<KeyPoint> keypointsObjectList = keypointsObject.toList();
+			List<KeyPoint> keypointsSceneList = keypointsScene.toList();
+			
+			for(int i = 0; i < goodMatches.size(); i++){
+			    objList.addLast(keypointsObjectList.get(goodMatches.get(i).queryIdx).pt);
+			    sceneList.addLast(keypointsSceneList.get(goodMatches.get(i).trainIdx).pt);
+			}
+			
+			MatOfPoint2f obj = new MatOfPoint2f();
+			obj.fromList(objList);
+
+			MatOfPoint2f scene = new MatOfPoint2f();
+			scene.fromList(sceneList);
+			
+			Mat homographyMatrix = org.opencv.calib3d.Calib3d.findHomography(obj, scene, 
+					org.opencv.calib3d.Calib3d.RANSAC, 3);
 			decomposeHomography(homographyMatrix, "resources/camera/cameraMatrix_gopro_0.23.json");
 			
 //			printMatrix(affineRotationMatrix, "affine rotation matrix");

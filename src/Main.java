@@ -35,8 +35,8 @@ public class Main {
 		
 //		VideoVisualizer vv = new VideoVisualizer();
 		
-		CameraCalibration calib = new CameraCalibration();
-		calib.runCalibration(null);
+//		CameraCalibration calib = new CameraCalibration();
+//		calib.runCalibration(null);
 		
 //		
 //		VideoAnalyzer va = new VideoAnalyzer();
@@ -82,8 +82,11 @@ public class Main {
 //		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\wall1.jpg",
 //				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\wall2.jpg");
 		
-//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3053.png",
-//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3055.png");
+//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3060.png",
+//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3075.png");
+		
+//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\1.png",
+//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\72.png");
 		
 //		CameraCalculator.getBoundingPolygon(CameraTesting.FOVh, CameraTesting.FOVv, 10, CameraTesting.ROLL,
 //				CameraTesting.PITCH, CameraTesting.HEADING);
@@ -133,6 +136,14 @@ public class Main {
 //		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\26.8.16 data\\videos\\GOPR3989.MP4");
 //		grabber.showNthFrame(3053, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 //		grabber.showNthFrame(3055, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+		
+//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\calibration\\GOPR4017.MP4");
+//		grabber.showNthFrame(37, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.showNthFrame(42, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.showNthFrame(50, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+		
+		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3055.png",
+				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3053.png");
 
 //		System.out.println("Program has finished");
 	}
