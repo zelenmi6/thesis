@@ -203,4 +203,55 @@ public class GeographyUtils {
 		}
 		return new Vector3d(longitudeDeg,latitudeDeg,altitudeM);
 	}
+	
+	/** 
+	  *  Calculates distance between given and base point.
+	  * 
+	  *  @param latitude2     current latitude in degrees
+	  *  @param longitude2     current longitude in degrees
+	  *  @return         distance in meters
+	  */
+	public static double calculateDistance (double longitude1, double latitude1, double longitude2, double latitude2) {
+	    double dLongitude, dLatitude;
+	    /** Earth´s (mean) radius in meters */
+	    final double RADIUS = 6371000;
+	    longitude1 = Math.toRadians(longitude1);
+	    latitude1 = Math.toRadians(latitude1);
+	   
+	    dLongitude = Math.toRadians(longitude2) - longitude1;
+	    dLatitude = Math.toRadians(latitude2) - latitude1;
+	    latitude2 = Math.toRadians(latitude2);
+	 
+	    double tmp = Math.pow(Math.sin(dLatitude / 2), 2) + Math.pow(Math.sin(dLongitude / 2), 2) * Math.cos(latitude1) * Math.cos(latitude2);
+	    return RADIUS * 2 * Math.asin(Math.sqrt(tmp));
+	}
+	
+	public static double distance(double lat1, double lon1, double lat2, double lon2, String unit) {
+		double theta = lon1 - lon2;
+		double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+		dist = Math.acos(dist);
+		dist = rad2deg(dist);
+		dist = dist * 60 * 1.1515;
+		if (unit == "K") {
+			dist = dist * 1.609344;
+		} else if (unit == "N") {
+			dist = dist * 0.8684;
+		}
+
+		return (dist);
+	}
+
+	/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+	/*::	This function converts decimal degrees to radians						 :*/
+	/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+	private static double deg2rad(double deg) {
+		return (deg * Math.PI / 180.0);
+	}
+
+	/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+	/*::	This function converts radians to decimal degrees						 :*/
+	/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+	private static double rad2deg(double rad) {
+		return (rad * 180 / Math.PI);
+	}
 }

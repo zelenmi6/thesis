@@ -10,6 +10,7 @@ import org.postgis.LinearRing;
 import org.postgis.Point;
 import org.postgis.Polygon;
 
+import analyzers.TelemetryHomographyComparator;
 import analyzers.VideoAnalyzer;
 import camera_calibration.CameraCalibration;
 import camera_calibration.MatSerializer;
@@ -32,6 +33,15 @@ import visualizer.Visualizer;
 public class Main {
 	
 	public static void main(String[] args) throws Exception {
+		
+//		AbstractCamera camera = new Hero3PlusBlack(Hero3PlusBlackFieldOfView.WIDE_16X9, 25);
+//		TelemetryHomographyComparator comparator = new TelemetryHomographyComparator(
+//				"C:\\Users\\Milan\\Desktop\\26.8.16 data\\fisheye\\GOPR3989_cropped.avi",
+//				"C:\\Users\\Milan\\Desktop\\26.8.16 data\\parsed_logs\\2016_08_26_11_57_56.csv",
+//				camera);
+//		long time = 122000-60000;
+//		long offset = 1160;
+//		comparator.compareTelemetryAndHomography(time, time + offset, false);
 		
 //		VideoVisualizer vv = new VideoVisualizer();
 		
@@ -133,17 +143,24 @@ public class Main {
 //		Thread.sleep(5000);
 //		grabber.showNthFrame(47145);
 		//48 vterin
-//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\26.8.16 data\\videos\\GOPR3989.MP4");
-//		grabber.showNthFrame(3053, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.showNthFrame(3055, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 		
-//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\calibration\\GOPR4017.MP4");
-//		grabber.showNthFrame(37, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.showNthFrame(42, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.showNthFrame(50, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\calibration\\GOPR4037.MP4");
+//		grabber.saveNthFrame(1, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(13*25/2, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(50, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(75, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(100, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(125, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(150, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(175, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(13*25, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 		
-		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3055.png",
-				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3053.png");
+		
+		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\pitch\\44.png",
+				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\pitch\\76.png");
+		
+//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\angle\\1.png",
+//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\angle\\75.png");
 
 //		System.out.println("Program has finished");
 	}

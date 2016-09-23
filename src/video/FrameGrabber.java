@@ -6,7 +6,7 @@ import org.opencv.videoio.Videoio;
 import org.opencv.imgcodecs.Imgcodecs;
 
 public class FrameGrabber {
-	static{ System.loadLibrary("opencv_java300"); }
+	static{ System.loadLibrary("libopencv_java310"); }
 	
 	VideoCapture cap;
 	Mat matFrame = new Mat();
@@ -30,7 +30,7 @@ public class FrameGrabber {
 		ims.showImage(matFrame);
 	}
 	
-	public void showNthFrame(int idx, String outputDirectory) {
+	public void saveNthFrame(int idx, String outputDirectory) {
 		cap.set(1, idx); // CV_CAP_PROP_POS_FRAMES == 1
 		cap.read(matFrame);// ?
 		cap.retrieve(matFrame);// ?

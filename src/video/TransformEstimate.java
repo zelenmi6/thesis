@@ -36,87 +36,83 @@ public class TransformEstimate {
 	DescriptorExtractor descriptorExtractor = DescriptorExtractor.create(DescriptorExtractor.ORB );
 	DescriptorMatcher descriptorMatcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_SL2); // BRUTEFORCE_SL2 = 6**
 	
+	List<double[]> rotations = new ArrayList<double[]>();
+	List<double[]> translations = new ArrayList<double[]>();
+	
 	public TransformEstimate(String img1Path, String img2Path) {
 		try {
-			Mat imObject = getImage(img1Path);
-			Mat imgScene = getImage(img2Path);
+			Mat firstImage = getImage(img1Path);
+			Mat secondImage = getImage(img2Path);
 			
 			// Key point detection
-			MatOfKeyPoint keypointsObject = new MatOfKeyPoint();
-			MatOfKeyPoint keypointsScene = new MatOfKeyPoint();
-			featureDetector.detect(imObject, keypointsObject);
-			featureDetector.detect(imgScene, keypointsScene);
+			MatOfKeyPoint keypointsFirstImage = new MatOfKeyPoint();
+			MatOfKeyPoint keypointsSecondImage = new MatOfKeyPoint();
+			featureDetector.detect(firstImage, keypointsFirstImage);
+			featureDetector.detect(secondImage, keypointsSecondImage);
 			
 			// Descriptor extraction
-			Mat descriptorObject = new Mat();
-			Mat descriptorScene = new Mat();
-			descriptorExtractor.compute(imObject, keypointsObject, descriptorObject);
-			descriptorExtractor.compute(imgScene, keypointsScene, descriptorScene);
+			Mat descriptorFirstImage = new Mat();
+			Mat descriptorSecondImage = new Mat();
+			descriptorExtractor.compute(firstImage, keypointsFirstImage, descriptorFirstImage);
+			descriptorExtractor.compute(secondImage, keypointsSecondImage, descriptorSecondImage);
 			
 			// Descriptor matching
 			MatOfDMatch matches = new MatOfDMatch();
-			descriptorMatcher.match(descriptorObject, descriptorScene, matches);
+			descriptorMatcher.match(descriptorFirstImage, descriptorSecondImage, matches);
 			List<DMatch> matchesList = matches.toList();
 			
-			// orezani matchu
-//			matches = new MatOfDMatch(matches.submat(100, 120, 0, 1));
+			showMatches(firstImage, keypointsFirstImage, secondImage, keypointsSecondImage, matches, false);
 			
-//			Mat[] points = getPointMatricesFromDescriptors(descriptor1, descriptor2, matches);
-//			Mat[] pointsWithZ = getPointMatricesFromKeyPointsWithZ(keyPoints1, keyPoints2, matches);
-//			printKeyPointMatrices(keyPoints1, keyPoints2);
-//			printMatrices(descriptor1, descriptor2);
-//			printMatrices(pointsWithZ[0], pointsWithZ[1]);
-			
-			showMatches(imObject, keypointsObject, imgScene, keypointsScene, matches, false);
-			
-//			System.out.println(keyPoints1.toList().size());
-//			System.out.println(keyPoints2.toList().size());
-			
-//			Mat result = Video.estimateRigidTransform(matFrame1, matFrame2, true);
-//			Mat out = new Mat(3, 4, CvType.CV_8SC3);
-//			Mat inliers = new Mat();
-//			Mat affineRotationMatrix = new Mat();
-//			int result = org.opencv.calib3d.Calib3d.estimateAffine3D(pointsWithZ[0], pointsWithZ[1], affineRotationMatrix, inliers, 3, 0.99);
-			
-//			Mat[] points = getPointMatricesFromKeyPoints(keyPoints1, keyPoints2, matches);
-//			MatOfPoint2f matOfPoint1 = convertMatToMatOfPoint2f(points[0]);
-//			MatOfPoint2f matOfPoint2 = convertMatToMatOfPoint2f(points[1]);
 			
 			LinkedList<DMatch> goodMatches = new LinkedList<DMatch>();
 			MatOfDMatch gm = new MatOfDMatch();
 			
-			for (int i = 0; i < descriptorObject.rows(); i++) {
-				goodMatches.addLast(matchesList.get(i));
+			for (int i = 0; i < descriptorFirstImage.rows(); i++) {
+				// filter out some of the matches if needed
+				goodMatches.addLast(matchesList.get(i)); // not filtering anything
 			}
 			
 			gm.fromList(goodMatches);
 			
-			LinkedList<Point> objList = new LinkedList<Point>();
-			LinkedList<Point> sceneList = new LinkedList<Point>();
+			LinkedList<Point> firstImageList = new LinkedList<Point>();
+			LinkedList<Point> secondImageList = new LinkedList<Point>();
 			
-			List<KeyPoint> keypointsObjectList = keypointsObject.toList();
-			List<KeyPoint> keypointsSceneList = keypointsScene.toList();
+			List<KeyPoint> keypointsFirstImageList = keypointsFirstImage.toList();
+			List<KeyPoint> keypointsSecondImageList = keypointsSecondImage.toList();
 			
 			for(int i = 0; i < goodMatches.size(); i++){
-			    objList.addLast(keypointsObjectList.get(goodMatches.get(i).queryIdx).pt);
-			    sceneList.addLast(keypointsSceneList.get(goodMatches.get(i).trainIdx).pt);
+			    firstImageList.addLast(keypointsFirstImageList.get(goodMatches.get(i).queryIdx).pt);
+			    secondImageList.addLast(keypointsSecondImageList.get(goodMatches.get(i).trainIdx).pt);
 			}
 			
-			MatOfPoint2f obj = new MatOfPoint2f();
-			obj.fromList(objList);
+			MatOfPoint2f firstImageMop2f = new MatOfPoint2f();
+			firstImageMop2f.fromList(firstImageList);
 
-			MatOfPoint2f scene = new MatOfPoint2f();
-			scene.fromList(sceneList);
+			MatOfPoint2f secondImageMop2f = new MatOfPoint2f();
+			secondImageMop2f.fromList(secondImageList);
 			
-			Mat homographyMatrix = org.opencv.calib3d.Calib3d.findHomography(obj, scene, 
-					org.opencv.calib3d.Calib3d.RANSAC, 3);
-			decomposeHomography(homographyMatrix, "resources/camera/cameraMatrix_gopro_0.23.json");
+			Mat essentialMat = org.opencv.calib3d.Calib3d.findEssentialMat(firstImageMop2f, secondImageMop2f, 1.0, new Point(0, 0),
+					org.opencv.calib3d.Calib3d.RANSAC, 0.999, 3);
+			decomposeEssential(essentialMat);
 			
-//			printMatrix(affineRotationMatrix, "affine rotation matrix");
-			printRotationMatrix(homographyMatrix, "homography matrix");
+//			Mat homographyMatrix = org.opencv.calib3d.Calib3d.findHomography(obj, scene, 
+//					org.opencv.calib3d.Calib3d.RANSAC, 1);
+//			decomposeHomography(homographyMatrix, "resources/camera/cameraMatrix_gopro_0.23.json");
+			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void decomposeEssential(Mat essentialMat) {
+		Mat firstRotation = new Mat();
+		Mat secondRotation = new Mat();
+		Mat translation = new Mat();
+		org.opencv.calib3d.Calib3d.decomposeEssentialMat(essentialMat, firstRotation, secondRotation, translation);
+		printRotationMatrix(firstRotation, "Rotation matrix");
+		printRotationMatrix(secondRotation, "Rotation matrix");
+		printGeneralMatrix(translation, "Translation");
 	}
 	
 	private void decomposeHomography(Mat homographyMatrix, String cameraMatrixPath) throws IOException {
@@ -136,14 +132,8 @@ public class TransformEstimate {
 		}
 	}
 	
-	private MatOfPoint2f convertMatToMatOfPoint2f(Mat mat) {
-		MatOfPoint mpoints = new MatOfPoint(mat);
-		MatOfPoint2f points2f = new MatOfPoint2f(mpoints.toArray());
-		return points2f;
-	}
-	
 	private void showMatches(Mat matFrame1, MatOfKeyPoint keyPoints1, Mat matFrame2,
-			MatOfKeyPoint keyPoints2, MatOfDMatch matches, boolean show) {
+		MatOfKeyPoint keyPoints2, MatOfDMatch matches, boolean show) {
 		if (!show) return;
 		Mat imgMatches = new Mat();
 		org.opencv.features2d.Features2d.drawMatches(matFrame1, keyPoints1, matFrame2, keyPoints2, matches, imgMatches);
@@ -159,77 +149,6 @@ public class TransformEstimate {
 //		Imshow ims = new Imshow("From video source ... ");
 //		ims.showImage(matFrame);
 		return matFrame;
-	}
-	
-	private Mat[] getPointMatricesFromDescriptors(Mat desc1, Mat desc2, MatOfDMatch matches) {
-		List<DMatch> listOfMatches = matches.toList();
-		Mat pts1 = new Mat(listOfMatches.size(), 3, CvType.CV_8UC3);
-		Mat pts2 = new Mat(listOfMatches.size(), 3, CvType.CV_8UC3);
-		for (int i = 0; i < listOfMatches.size(); i ++) {
-			int queryIdx = listOfMatches.get(i).queryIdx;
-			int trainIdx = listOfMatches.get(i).trainIdx;
-			
-//			System.out.println(desc1.get(queryIdx, 0)[0] + " " + desc1.get(queryIdx, 1)[0] + " " + desc1.get(queryIdx, 2)[0]);
-//			System.out.println(desc2.get(trainIdx, 0)[0] + " " + desc2.get(trainIdx, 1)[0] + " " + desc2.get(trainIdx, 2)[0]);
-			pts1.get(i, 0)[0] = desc1.get(queryIdx, 0)[0];
-			pts1.get(i, 1)[0] = desc1.get(queryIdx, 1)[0];
-			pts1.get(i, 2)[0] = desc1.get(queryIdx, 2)[0];
-			
-			pts2.get(i, 0)[0] = desc2.get(trainIdx, 0)[0];
-			pts2.get(i, 1)[0] = desc2.get(trainIdx, 1)[0];
-			pts2.get(i, 2)[0] = desc2.get(trainIdx, 2)[0];
-		}
-		
-		return new Mat[]{pts1, pts2};
-	}
-	
-	private Mat[] getPointMatricesFromKeyPoints(MatOfKeyPoint kp1, MatOfKeyPoint kp2, MatOfDMatch matches) {
-		List<DMatch> listOfMatches = matches.toList();
-		List<KeyPoint> keyPoints1 = kp1.toList();
-		List<KeyPoint> keyPoints2 = kp2.toList();
-		Mat pts1 = new Mat(listOfMatches.size(), 2, CvType.CV_32S);
-		Mat pts2 = new Mat(listOfMatches.size(), 2, CvType.CV_32S);
-		
-		for (int i = 0; i < listOfMatches.size(); i ++) {
-			int queryIdx = listOfMatches.get(i).queryIdx;
-			int trainIdx = listOfMatches.get(i).trainIdx;
-			
-//			pts1.get(i, 0)[0] = keyPoints1.get(queryIdx).pt.x;
-			pts1.put(i, 0, new double[]{keyPoints1.get(queryIdx).pt.x});
-//			System.out.println(keyPoints1.get(queryIdx).pt.x + "|||" + pts1.get(i, 0)[0]);
-			pts1.put(i, 1, new double[]{keyPoints1.get(queryIdx).pt.y});
-			
-			pts2.put(i, 0, new double[]{keyPoints2.get(trainIdx).pt.x});
-			pts2.put(i, 1, new double[]{keyPoints2.get(trainIdx).pt.y});
-		}
-		
-		return new Mat[]{pts1, pts2};
-	}
-	
-	private Mat[] getPointMatricesFromKeyPointsWithZ(MatOfKeyPoint kp1, MatOfKeyPoint kp2, MatOfDMatch matches) {
-		List<DMatch> listOfMatches = matches.toList();
-		List<KeyPoint> keyPoints1 = kp1.toList();
-		List<KeyPoint> keyPoints2 = kp2.toList();
-		Mat pts1 = new Mat(listOfMatches.size(), 3, CvType.CV_32S);
-		Mat pts2 = new Mat(listOfMatches.size(), 3, CvType.CV_32S);
-		int Z = 30;
-		
-		for (int i = 0; i < listOfMatches.size(); i ++) {
-			int queryIdx = listOfMatches.get(i).queryIdx;
-			int trainIdx = listOfMatches.get(i).trainIdx;
-			
-//			pts1.get(i, 0)[0] = keyPoints1.get(queryIdx).pt.x;
-			pts1.put(i, 0, new double[]{keyPoints1.get(queryIdx).pt.x});
-//			System.out.println(keyPoints1.get(queryIdx).pt.x + "|||" + pts1.get(i, 0)[0]);
-			pts1.put(i, 1, new double[]{keyPoints1.get(queryIdx).pt.y});
-			pts1.put(i, 2, new double[]{Z});
-			
-			pts2.put(i, 0, new double[]{keyPoints2.get(trainIdx).pt.x});
-			pts2.put(i, 1, new double[]{keyPoints2.get(trainIdx).pt.y});
-			pts2.put(i, 2, new double[]{Z});
-		}
-		
-		return new Mat[]{pts1, pts2};
 	}
 	
 	private void printRotationMatrix(Mat matrix, String description) {
@@ -250,42 +169,27 @@ public class TransformEstimate {
 		System.out.println("x (roll): " + Math.toDegrees(x));
 		System.out.println("y (pitch): " + Math.toDegrees(y));
 		System.out.println("z (yaw): " + Math.toDegrees(z));
+		rotations.add(new double[]{Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z)});
 	}
 	
 	private void printGeneralMatrix(Mat matrix, String description) {
 		System.out.println("\nPrinting " + description);
+		translations.add(new double[3]);
 		for (int i = 0; i < matrix.height(); i ++) {
 			for (int j = 0; j < matrix.width(); j ++) {
+				translations.get(translations.size()-1)[i] = matrix.get(i, j)[0];
 				System.out.print(matrix.get(i, j)[0] + " ");
 			}
 			System.out.println();
 		}
 	}
 	
-	private void printKeyPointMatrices(MatOfKeyPoint matrix1, MatOfKeyPoint matrix2) {
-		System.out.println(matrix1.rows() + " " + matrix1.cols() + " \t|\t " + matrix2.rows() + " " + matrix2.cols());
-		List<KeyPoint> keyPoints1 = matrix1.toList();
-		List<KeyPoint> keyPoints2 = matrix1.toList();
-		keyPoints1.forEach(value -> System.out.println("x: " + value.pt.x + " y:" + value.pt.y));
-		System.out.println("---------------------------------------------------------------------------------------------------------------");
-		keyPoints2.forEach(value -> System.out.println("x: " + value.pt.x + " y:" + value.pt.y));
+	public List<double[]> getRotations() {
+		return rotations;
 	}
 	
-	private void printMatrices(Mat matrix1, Mat matrix2) {
-		System.out.println(matrix1.rows() + " " + matrix1.cols() + " \t|\t " + matrix2.rows() + " " + matrix2.cols());
-		if (matrix1.rows() != matrix2.rows()) 
-			return;
-		
-		for (int i = 0; i < matrix1.rows(); i ++) {
-			for (int j = 0; j < matrix1.cols(); j ++) {
-				System.out.print(matrix1.get(i, j)[0] + " ");
-			}
-			System.out.print(" | ");
-			for (int j = 0; j < matrix2.cols(); j ++) {
-				System.out.print(matrix2.get(i, j)[0] + " ");
-			}
-			System.out.println();
-		}
+	public List<double[]> getTranslations() {
+		return translations;
 	}
 
 }
