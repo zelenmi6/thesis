@@ -11,6 +11,7 @@ import java.util.List;
 import javax.imageio.ImageIO;
 
 import org.opencv.calib3d.Calib3d;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.DMatch;
 import org.opencv.core.KeyPoint;
@@ -20,6 +21,8 @@ import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
@@ -32,8 +35,8 @@ public class TransformEstimate {
 	static{ System.loadLibrary("libopencv_java310"); }
 	
 	// SIFT a SURF jsou v Jave bugly
-	FeatureDetector featureDetector = FeatureDetector.create(FeatureDetector.ORB);
-	DescriptorExtractor descriptorExtractor = DescriptorExtractor.create(DescriptorExtractor.ORB );
+	FeatureDetector featureDetector = FeatureDetector.create(FeatureDetector.SURF);
+	DescriptorExtractor descriptorExtractor = DescriptorExtractor.create(DescriptorExtractor.SURF );
 	DescriptorMatcher descriptorMatcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_SL2); // BRUTEFORCE_SL2 = 6**
 	
 	List<double[]> rotations = new ArrayList<double[]>();
@@ -61,6 +64,17 @@ public class TransformEstimate {
 			descriptorMatcher.match(descriptorFirstImage, descriptorSecondImage, matches);
 			List<DMatch> matchesList = matches.toList();
 			
+			// filtering out matches
+			Double max_dist = 0.0;
+			Double min_dist = 100.0;
+			for(int i = 0; i < descriptorFirstImage.rows(); i++){
+			    Double dist = (double) matchesList.get(i).distance;
+			    if(dist < min_dist) min_dist = dist;
+			    if(dist > max_dist) max_dist = dist;
+			}
+			System.out.println("-- Max dist : " + max_dist);
+			System.out.println("-- Min dist : " + min_dist);
+			
 			showMatches(firstImage, keypointsFirstImage, secondImage, keypointsSecondImage, matches, false);
 			
 			
@@ -69,10 +83,12 @@ public class TransformEstimate {
 			
 			for (int i = 0; i < descriptorFirstImage.rows(); i++) {
 				// filter out some of the matches if needed
-				goodMatches.addLast(matchesList.get(i)); // not filtering anything
+//				if (matchesList.get(i).distance < 3.5*min_dist)
+					goodMatches.addLast(matchesList.get(i)); // not filtering anything
 			}
 			
 			gm.fromList(goodMatches);
+			showMatches(firstImage, keypointsFirstImage, secondImage, keypointsSecondImage, gm, false);
 			
 			LinkedList<Point> firstImageList = new LinkedList<Point>();
 			LinkedList<Point> secondImageList = new LinkedList<Point>();
@@ -91,7 +107,10 @@ public class TransformEstimate {
 			MatOfPoint2f secondImageMop2f = new MatOfPoint2f();
 			secondImageMop2f.fromList(secondImageList);
 			
-			Mat essentialMat = org.opencv.calib3d.Calib3d.findEssentialMat(firstImageMop2f, secondImageMop2f, 1.0, new Point(0, 0),
+			//3.1427346523449033, y: 2.383214663142159
+			//focal len 14
+			Mat essentialMat = org.opencv.calib3d.Calib3d.findEssentialMat(firstImageMop2f, secondImageMop2f,
+					3.5714310113232735, new Point(3.1427346523449033, 2.383214663142159),
 					org.opencv.calib3d.Calib3d.RANSAC, 0.999, 3);
 			decomposeEssential(essentialMat);
 			
@@ -109,10 +128,59 @@ public class TransformEstimate {
 		Mat firstRotation = new Mat();
 		Mat secondRotation = new Mat();
 		Mat translation = new Mat();
-		org.opencv.calib3d.Calib3d.decomposeEssentialMat(essentialMat, firstRotation, secondRotation, translation);
-		printRotationMatrix(firstRotation, "Rotation matrix");
-		printRotationMatrix(secondRotation, "Rotation matrix");
-		printGeneralMatrix(translation, "Translation");
+		boolean testApproach = false;
+		if (testApproach) {
+			Mat w = new Mat();
+		    Mat u = new Mat();
+		    Mat vt = new Mat();
+		    
+			Mat diag = new Mat(3,3,CvType.CV_64FC1);
+		    double[] diagVal = {1,0,0,0,1,0,0,0,1};
+		    diag.put(0, 0, diagVal);
+
+		    Mat newE = new Mat(3,3,CvType.CV_64FC1);
+
+		    Core.SVDecomp(essentialMat, w, u, vt, Core.DECOMP_SVD); 
+
+		    Core.gemm(u, diag, 1, vt, 1, newE);
+
+		    Core.SVDecomp(newE, w, u, vt, Core.DECOMP_SVD);
+
+		    double[] W_Values = {0,-1,0,1,0,0,0,0,1};
+		    Mat W = new Mat(new Size(3,3), CvType.CV_64FC1);
+		    W.put(0, 0, W_Values);
+
+		    double[] Wt_values = {0,1,0-1,0,0,0,0,1};
+		    Mat Wt = new Mat(new Size(3,3), CvType.CV_64FC1);
+		    Wt.put(0,0,Wt_values);
+
+
+		    Mat R1 = new Mat();
+		    Mat R2 = new Mat();
+
+		    // u * W * vt = R 
+		    Core.gemm(u, Wt, 1, vt, 1, R2);
+		    Core.gemm(u, W, 1, vt, 1, R1);
+		    
+		    printRotationMatrix(R1, "Rotation matrix 1");
+		    printRotationMatrix(R2, "Rotation matrix 2");
+
+		    // +- T (2 possible solutions for T)
+		    Mat T1 = new Mat();
+		    Mat T2 = new Mat();
+		    // T = u.t
+		    u.col(2).copyTo(T1);
+
+		    Core.multiply(translation, new Scalar(-1.0, -1.0, -1.0), T2);
+		    
+		    
+		    
+		} else {
+			org.opencv.calib3d.Calib3d.decomposeEssentialMat(essentialMat, firstRotation, secondRotation, translation);
+			printRotationMatrix(firstRotation, "Rotation matrix");
+			printRotationMatrix(secondRotation, "Rotation matrix");
+			printGeneralMatrix(translation, "Translation");
+		}
 	}
 	
 	private void decomposeHomography(Mat homographyMatrix, String cameraMatrixPath) throws IOException {
@@ -146,13 +214,15 @@ public class TransformEstimate {
 		Mat matFrame = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8UC3);
 		byte[] pixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 		matFrame.put(0, 0, pixels);
+		
+		Mat matFrameGray = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8UC1);
+		org.opencv.imgproc.Imgproc.cvtColor(matFrame, matFrameGray, org.opencv.imgproc.Imgproc.COLOR_RGB2GRAY);
 //		Imshow ims = new Imshow("From video source ... ");
 //		ims.showImage(matFrame);
-		return matFrame;
+		return matFrameGray;
 	}
 	
 	private void printRotationMatrix(Mat matrix, String description) {
-		System.out.println();
 		System.out.println("Printing " + description);
 		for (int i = 0; i < matrix.height(); i ++) {
 			for (int j = 0; j < matrix.width(); j ++) {
@@ -161,15 +231,30 @@ public class TransformEstimate {
 			System.out.println();
 		}
 		double x, y, z;
-		x = Math.atan2(matrix.get(2, 1)[0], matrix.get(2, 2)[0]); //roll
-		y = Math.atan2(-matrix.get(2, 0)[0], Math.sqrt(matrix.get(2, 1)[0] * matrix.get(2, 1)[0] + 
-				matrix.get(2, 2)[0] * matrix.get(2, 2)[0] )); //pitch
-		z = Math.atan2(matrix.get(1, 0)[0], matrix.get(0, 0)[0]); //yaw
+		double sy = Math.sqrt(matrix.get(0, 0)[0] * matrix.get(0, 0)[0]
+								+ matrix.get(1, 0)[0] * matrix.get(1, 0)[0]);
+		boolean singular = sy < 1e-6;
+		
+		if (!singular) {
+			System.out.println(" as a non singular matrix");
+			x = Math.atan2(matrix.get(2, 1)[0], matrix.get(2, 2)[0]); //roll
+			y = Math.atan2(-matrix.get(2, 0)[0], sy); // pitch
+			z = Math.atan2(matrix.get(1, 0)[0], matrix.get(0, 0)[0]); // yaw
+		} else {
+			System.out.println(" as a singular matrix");
+			x = Math.atan2(-matrix.get(2, 1)[0], matrix.get(2, 2)[0]);
+			y = Math.atan2(-matrix.get(2, 0)[0], sy);
+			z = 0;
+		}
+		
 		System.out.println("Axes angles: ");
 		System.out.println("x (roll): " + Math.toDegrees(x));
 		System.out.println("y (pitch): " + Math.toDegrees(y));
 		System.out.println("z (yaw): " + Math.toDegrees(z));
 		rotations.add(new double[]{Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z)});
+		
+		
+		System.out.println();
 	}
 	
 	private void printGeneralMatrix(Mat matrix, String description) {

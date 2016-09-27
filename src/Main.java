@@ -15,8 +15,8 @@ import analyzers.VideoAnalyzer;
 import camera_calibration.CameraCalibration;
 import camera_calibration.MatSerializer;
 import cameras.AbstractCamera;
-import cameras.Hero3PlusBlack;
-import cameras.Hero3PlusBlack.Hero3PlusBlackFieldOfView;
+import cameras.Hero4PlusBlack;
+import cameras.Hero4PlusBlack.Hero3PlusBlackFieldOfView;
 import constants.CameraTesting;
 import database.VideoPicturesDao;
 import geometry.Calculations;
@@ -33,6 +33,8 @@ import visualizer.Visualizer;
 public class Main {
 	
 	public static void main(String[] args) throws Exception {
+		
+		MatSerializer.printCalibrationMatrixValues("resources/camera/cameraMatrix_gopro_0.23.json");
 		
 //		AbstractCamera camera = new Hero3PlusBlack(Hero3PlusBlackFieldOfView.WIDE_16X9, 25);
 //		TelemetryHomographyComparator comparator = new TelemetryHomographyComparator(
@@ -144,9 +146,9 @@ public class Main {
 //		grabber.showNthFrame(47145);
 		//48 vterin
 		
-//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\calibration\\GOPR4037.MP4");
+//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\calibration\\GOPR4040.MP4");
 //		grabber.saveNthFrame(1, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.saveNthFrame(13*25/2, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(25, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 //		grabber.saveNthFrame(50, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 //		grabber.saveNthFrame(75, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 //		grabber.saveNthFrame(100, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
@@ -156,11 +158,11 @@ public class Main {
 //		grabber.saveNthFrame(13*25, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 		
 		
-		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\pitch\\44.png",
-				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\pitch\\76.png");
+//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\roll2\\1.png",
+//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\roll2\\25.png");
 		
-//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\angle\\1.png",
-//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\angle\\75.png");
+//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3050.png",
+//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3053.png");
 
 //		System.out.println("Program has finished");
 	}

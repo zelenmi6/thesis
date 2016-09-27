@@ -16,12 +16,14 @@ import org.apache.commons.codec.binary.Base64;
 //import org.apache.commons.lang3.SerializationUtils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class MatSerializer {
+	static{ System.loadLibrary("libopencv_java310"); }
 	public static String matToJson(Mat mat){
 	    JsonObject obj = new JsonObject();
 	    
@@ -120,6 +122,60 @@ public class MatSerializer {
 	public static String loadStringFromFile(String filePath) throws IOException {
 		byte[] encoded = Files.readAllBytes(Paths.get(filePath));
 		 return new String(encoded, StandardCharsets.UTF_8);
+	}
+	
+	public static void printCalibrationMatrixValues(String filePath) {
+		try {
+			String fileContent = loadStringFromFile(filePath);
+			Mat cameraMatrix = matFromJson(fileContent);
+			System.out.println("Printing intrinsic camera matrix");
+			for (int i = 0; i < cameraMatrix.height(); i ++) {
+				for (int j = 0; j < cameraMatrix.width(); j ++) {
+					System.out.print(cameraMatrix.get(i, j)[0] + " ");
+				}
+				System.out.println();
+			}
+			
+			boolean testMatrix = false;
+			if (testMatrix) {
+				cameraMatrix = new Mat(3, 3, 6);
+				for (int i = 0; i < cameraMatrix.height(); i ++)
+					for (int j = 0; j < cameraMatrix.width(); j ++) {
+					cameraMatrix.put(i, j, 0);
+				}
+				cameraMatrix.put(0, 0, 857.48296979);
+				cameraMatrix.put(0, 2, 968.06224829);
+				cameraMatrix.put(1, 1, 876.71824265);
+				cameraMatrix.put(1, 2, 556.37145899);
+				cameraMatrix.put(2, 2, 1.);
+				
+				System.out.println("Printing intrinsic camera matrix");
+				for (int i = 0; i < cameraMatrix.height(); i ++) {
+					for (int j = 0; j < cameraMatrix.width(); j ++) {
+						System.out.print(cameraMatrix.get(i, j)[0] + " ");
+					}
+					System.out.println();
+				}
+			}
+			
+			System.out.println();
+			org.opencv.core.Size size = new org.opencv.core.Size(1280, 720);
+			double [] fovx = new double[1];
+			double [] fovy = new double[1];
+			double [] focLen = new double[1];
+			double [] aspectRatio = new double[1];
+			Point ppov = new Point(0, 0);
+			org.opencv.calib3d.Calib3d.calibrationMatrixValues(cameraMatrix, size, 
+					6.17, 4.55, fovx, fovy, focLen, ppov, aspectRatio);
+			System.out.println("FoVx: " + fovx[0]);
+			System.out.println("FoVy: " + fovy[0]);
+			System.out.println("Focal length: " + focLen[0]);
+			System.out.println("Principal point of view; x: " + ppov.x + ", y: " + ppov.y);
+			System.out.println("Aspect ratio: " + aspectRatio[0]);
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
 
