@@ -45,7 +45,7 @@ public class CameraCalibration extends Application {
 	
 	public void runCalibration(String[] args) {
 		// load the native OpenCV library
-		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+		System.loadLibrary("libopencv_java310");
 		
 		launch(args);
 	}

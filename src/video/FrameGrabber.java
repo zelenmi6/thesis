@@ -1,5 +1,6 @@
 package video;
 
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.Videoio;
@@ -35,7 +36,13 @@ public class FrameGrabber {
 		cap.read(matFrame);// ?
 		cap.retrieve(matFrame);// ?
 //		ims.showImage(matFrame);
-		Imgcodecs.imwrite(outputDirectory + idx + ".png", matFrame);
+		boolean gray = true;
+		if (gray) {
+			Mat matFrameGray = new Mat(matFrame.height(), matFrame.width(), CvType.CV_8UC1);
+			org.opencv.imgproc.Imgproc.cvtColor(matFrame, matFrameGray, org.opencv.imgproc.Imgproc.COLOR_RGB2GRAY);
+			matFrame = matFrameGray;
+		}
+		Imgcodecs.imwrite(outputDirectory + idx + ".jpg", matFrame);
 	}
 
 }

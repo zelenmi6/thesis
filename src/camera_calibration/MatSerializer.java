@@ -136,17 +136,17 @@ public class MatSerializer {
 				System.out.println();
 			}
 			
-			boolean testMatrix = false;
+			boolean testMatrix = true;
 			if (testMatrix) {
 				cameraMatrix = new Mat(3, 3, 6);
 				for (int i = 0; i < cameraMatrix.height(); i ++)
 					for (int j = 0; j < cameraMatrix.width(); j ++) {
 					cameraMatrix.put(i, j, 0);
 				}
-				cameraMatrix.put(0, 0, 857.48296979);
-				cameraMatrix.put(0, 2, 968.06224829);
-				cameraMatrix.put(1, 1, 876.71824265);
-				cameraMatrix.put(1, 2, 556.37145899);
+				cameraMatrix.put(0, 0, 1165.31634);
+				cameraMatrix.put(0, 2, 691.02581);
+				cameraMatrix.put(1, 1, 1192.49866);
+				cameraMatrix.put(1, 2, 389.10882);
 				cameraMatrix.put(2, 2, 1.);
 				
 				System.out.println("Printing intrinsic camera matrix");

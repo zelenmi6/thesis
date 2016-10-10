@@ -146,23 +146,24 @@ public class Main {
 //		grabber.showNthFrame(47145);
 		//48 vterin
 		
-//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\calibration\\GOPR4040.MP4");
-//		grabber.saveNthFrame(1, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.saveNthFrame(25, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.saveNthFrame(50, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.saveNthFrame(75, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.saveNthFrame(100, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\calibration\\GOPR4098.MP4");
+//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\26.8.16 data\\no_fisheye\\GOPR4034.avi");
+//		for (int i = 1; i < 27750; i += 7) {
+//			grabber.saveNthFrame(i, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\calibFrames\\");
+//		}
+//		grabber.saveNthFrame(36, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(92, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 //		grabber.saveNthFrame(125, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.saveNthFrame(150, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 //		grabber.saveNthFrame(175, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.saveNthFrame(13*25, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(125, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(175, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 		
 		
 //		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\roll2\\1.png",
 //				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\roll2\\25.png");
 		
-//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3050.png",
-//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3053.png");
+//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\36.jpg",
+//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\92.jpg");
 
 //		System.out.println("Program has finished");
 	}

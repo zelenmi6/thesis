@@ -26,6 +26,7 @@ import org.opencv.core.Size;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
 
 import camera_calibration.MatSerializer;
@@ -44,8 +45,12 @@ public class TransformEstimate {
 	
 	public TransformEstimate(String img1Path, String img2Path) {
 		try {
+			// Load and undistort images
 			Mat firstImage = getImage(img1Path);
 			Mat secondImage = getImage(img2Path);
+			
+			firstImage = undistortImage(firstImage);
+			secondImage = undistortImage(secondImage);
 			
 			// Key point detection
 			MatOfKeyPoint keypointsFirstImage = new MatOfKeyPoint();
@@ -84,11 +89,11 @@ public class TransformEstimate {
 			for (int i = 0; i < descriptorFirstImage.rows(); i++) {
 				// filter out some of the matches if needed
 //				if (matchesList.get(i).distance < 3.5*min_dist)
-					goodMatches.addLast(matchesList.get(i)); // not filtering anything
+//					goodMatches.addLast(matchesList.get(i)); // not filtering anything
 			}
 			
 			gm.fromList(goodMatches);
-			showMatches(firstImage, keypointsFirstImage, secondImage, keypointsSecondImage, gm, false);
+			showMatches(firstImage, keypointsFirstImage, secondImage, keypointsSecondImage, gm, true);
 			
 			LinkedList<Point> firstImageList = new LinkedList<Point>();
 			LinkedList<Point> secondImageList = new LinkedList<Point>();
@@ -181,6 +186,36 @@ public class TransformEstimate {
 			printRotationMatrix(secondRotation, "Rotation matrix");
 			printGeneralMatrix(translation, "Translation");
 		}
+	}
+	
+	private Mat undistortImage(Mat distorted) {
+		Mat distortionCoefficients = new Mat(1, 4, CvType.CV_32F);
+		distortionCoefficients.put(0, 0, -0.29881);
+		distortionCoefficients.put(0, 1, 0.24849);
+		distortionCoefficients.put(0, 2, -0.00171);
+		distortionCoefficients.put(0, 3, 0.00072);
+		distortionCoefficients.put(0, 4, 0.00000);
+		
+		Mat undistorted = new Mat(distorted.height(), distorted.width(), CvType.CV_8UC3);
+		
+		Mat cameraMat = new Mat(3, 3, 6);
+		cameraMat.put(0, 0, 1165.31634);
+		cameraMat.put(0, 2, 691.02581);
+		cameraMat.put(1, 1, 1192.49866);
+		cameraMat.put(1, 2, 389.10882);
+		cameraMat.put(2, 2, 1.);
+//		try {
+//			String json = MatSerializer.loadStringFromFile("resources/camera/cameraMatrix_gopro_0.23.json");
+//			cameraMat = MatSerializer.matFromJson(json);
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+//		org.opencv.calib3d.Calib3d.undistortImage(distorted, distortionCoefficients, cameraMat, undistorted);
+		Imgproc.undistort(distorted, undistorted, cameraMat, distortionCoefficients);
+		return undistorted;
+		
 	}
 	
 	private void decomposeHomography(Mat homographyMatrix, String cameraMatrixPath) throws IOException {
