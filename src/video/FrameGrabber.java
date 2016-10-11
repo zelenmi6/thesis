@@ -36,7 +36,7 @@ public class FrameGrabber {
 		cap.read(matFrame);// ?
 		cap.retrieve(matFrame);// ?
 //		ims.showImage(matFrame);
-		boolean gray = true;
+		boolean gray = false;
 		if (gray) {
 			Mat matFrameGray = new Mat(matFrame.height(), matFrame.width(), CvType.CV_8UC1);
 			org.opencv.imgproc.Imgproc.cvtColor(matFrame, matFrameGray, org.opencv.imgproc.Imgproc.COLOR_RGB2GRAY);

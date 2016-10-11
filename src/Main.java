@@ -34,7 +34,7 @@ public class Main {
 	
 	public static void main(String[] args) throws Exception {
 		
-		MatSerializer.printCalibrationMatrixValues("resources/camera/cameraMatrix_gopro_0.23.json");
+//		MatSerializer.printCalibrationMatrixValues("resources/camera/cameraMatrix_gopro_0.23.json");
 		
 //		AbstractCamera camera = new Hero3PlusBlack(Hero3PlusBlackFieldOfView.WIDE_16X9, 25);
 //		TelemetryHomographyComparator comparator = new TelemetryHomographyComparator(
@@ -146,24 +146,26 @@ public class Main {
 //		grabber.showNthFrame(47145);
 		//48 vterin
 		
-//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\calibration\\GOPR4098.MP4");
+//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\calibration\\GOPR4124.MP4");
 //		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\26.8.16 data\\no_fisheye\\GOPR4034.avi");
-//		for (int i = 1; i < 27750; i += 7) {
+//		for (int i = 1; i < 25*13; i += 25) {
 //			grabber.saveNthFrame(i, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\calibFrames\\");
 //		}
-//		grabber.saveNthFrame(36, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.saveNthFrame(92, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(25, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(25*5, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(25*11, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(75, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(100, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 //		grabber.saveNthFrame(125, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.saveNthFrame(175, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.saveNthFrame(125, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.saveNthFrame(175, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(150, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(350, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 		
 		
-//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\roll2\\1.png",
-//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\roll2\\25.png");
+		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\yaw2\\25.jpg",
+				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\yaw2\\275.jpg");
 		
-//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\36.jpg",
-//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\92.jpg");
+//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\36_rect.jpg",
+//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\92_rect.jpg");
 
 //		System.out.println("Program has finished");
 	}

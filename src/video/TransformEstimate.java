@@ -49,8 +49,8 @@ public class TransformEstimate {
 			Mat firstImage = getImage(img1Path);
 			Mat secondImage = getImage(img2Path);
 			
-			firstImage = undistortImage(firstImage);
-			secondImage = undistortImage(secondImage);
+//			firstImage = undistortImage(firstImage);
+//			secondImage = undistortImage(secondImage);
 			
 			// Key point detection
 			MatOfKeyPoint keypointsFirstImage = new MatOfKeyPoint();
@@ -88,8 +88,8 @@ public class TransformEstimate {
 			
 			for (int i = 0; i < descriptorFirstImage.rows(); i++) {
 				// filter out some of the matches if needed
-//				if (matchesList.get(i).distance < 3.5*min_dist)
-//					goodMatches.addLast(matchesList.get(i)); // not filtering anything
+//				if (matchesList.get(i).distance < 2*min_dist)
+					goodMatches.addLast(matchesList.get(i)); // not filtering anything
 			}
 			
 			gm.fromList(goodMatches);
@@ -113,11 +113,30 @@ public class TransformEstimate {
 			secondImageMop2f.fromList(secondImageList);
 			
 			//3.1427346523449033, y: 2.383214663142159
-			//focal len 14
+			//focal len 5.595994970156251
+			Mat mask = new Mat();
+			Mat cameraMat = new Mat(3, 3, 6);
+			cameraMat.put(0, 0, 1160.91954);
+			cameraMat.put(0, 2, 693.15228);
+			cameraMat.put(1, 1, 1188.49321);
+			cameraMat.put(1, 2, 391.34554);
+			cameraMat.put(2, 2, 1.);
+//			Mat essentialMat = org.opencv.calib3d.Calib3d.findEssentialMat(firstImageMop2f, secondImageMop2f,
+//					1160.91954, new Point(3.3412105996875003, 2.473086398611111),
+//					org.opencv.calib3d.Calib3d.RANSAC, 0.999, 0.1, mask);
 			Mat essentialMat = org.opencv.calib3d.Calib3d.findEssentialMat(firstImageMop2f, secondImageMop2f,
-					3.5714310113232735, new Point(3.1427346523449033, 2.383214663142159),
-					org.opencv.calib3d.Calib3d.RANSAC, 0.999, 3);
-			decomposeEssential(essentialMat);
+					cameraMat,
+					org.opencv.calib3d.Calib3d.LMEDS, 0.999, 1, mask);
+//			decomposeEssential(essentialMat);
+			
+			Mat R = new Mat();
+			Mat t = new Mat();
+//			org.opencv.calib3d.Calib3d.recoverPose(essentialMat, firstImageMop2f, secondImageMop2f,
+//					R, t, 1160.91954, new Point(3.3412105996875003, 2.473086398611111), mask);
+			org.opencv.calib3d.Calib3d.recoverPose(essentialMat, firstImageMop2f, secondImageMop2f,
+					cameraMat, R, t, mask);
+			printRotationMatrix(R, "Pose");
+			printGeneralMatrix(t, "Translations");
 			
 //			Mat homographyMatrix = org.opencv.calib3d.Calib3d.findHomography(obj, scene, 
 //					org.opencv.calib3d.Calib3d.RANSAC, 1);
@@ -133,7 +152,7 @@ public class TransformEstimate {
 		Mat firstRotation = new Mat();
 		Mat secondRotation = new Mat();
 		Mat translation = new Mat();
-		boolean testApproach = false;
+		boolean testApproach = true;
 		if (testApproach) {
 			Mat w = new Mat();
 		    Mat u = new Mat();
@@ -189,20 +208,20 @@ public class TransformEstimate {
 	}
 	
 	private Mat undistortImage(Mat distorted) {
-		Mat distortionCoefficients = new Mat(1, 4, CvType.CV_32F);
-		distortionCoefficients.put(0, 0, -0.29881);
-		distortionCoefficients.put(0, 1, 0.24849);
-		distortionCoefficients.put(0, 2, -0.00171);
-		distortionCoefficients.put(0, 3, 0.00072);
-		distortionCoefficients.put(0, 4, 0.00000);
+		Mat distortionCoefficients = new Mat(1, 5, CvType.CV_32F);
+		distortionCoefficients.put(0, 0, -0.30109);
+		distortionCoefficients.put(0, 1, 0.28745);
+		distortionCoefficients.put(0, 2, -0.00156);
+		distortionCoefficients.put(0, 3, 0.00039);
+		distortionCoefficients.put(0, 4, -0.23250);
 		
 		Mat undistorted = new Mat(distorted.height(), distorted.width(), CvType.CV_8UC3);
 		
 		Mat cameraMat = new Mat(3, 3, 6);
-		cameraMat.put(0, 0, 1165.31634);
-		cameraMat.put(0, 2, 691.02581);
-		cameraMat.put(1, 1, 1192.49866);
-		cameraMat.put(1, 2, 389.10882);
+		cameraMat.put(0, 0, 1160.91954);
+		cameraMat.put(0, 2, 693.15228);
+		cameraMat.put(1, 1, 1188.49321);
+		cameraMat.put(1, 2, 391.34554);
 		cameraMat.put(2, 2, 1.);
 //		try {
 //			String json = MatSerializer.loadStringFromFile("resources/camera/cameraMatrix_gopro_0.23.json");
@@ -250,11 +269,11 @@ public class TransformEstimate {
 		byte[] pixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 		matFrame.put(0, 0, pixels);
 		
-		Mat matFrameGray = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8UC1);
+		Mat matFrameGray = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8UC3);
 		org.opencv.imgproc.Imgproc.cvtColor(matFrame, matFrameGray, org.opencv.imgproc.Imgproc.COLOR_RGB2GRAY);
 //		Imshow ims = new Imshow("From video source ... ");
 //		ims.showImage(matFrame);
-		return matFrameGray;
+		return matFrame;
 	}
 	
 	private void printRotationMatrix(Mat matrix, String description) {
@@ -265,21 +284,32 @@ public class TransformEstimate {
 			}
 			System.out.println();
 		}
-		double x, y, z;
-		double sy = Math.sqrt(matrix.get(0, 0)[0] * matrix.get(0, 0)[0]
-								+ matrix.get(1, 0)[0] * matrix.get(1, 0)[0]);
-		boolean singular = sy < 1e-6;
 		
-		if (!singular) {
-			System.out.println(" as a non singular matrix");
-			x = Math.atan2(matrix.get(2, 1)[0], matrix.get(2, 2)[0]); //roll
-			y = Math.atan2(-matrix.get(2, 0)[0], sy); // pitch
-			z = Math.atan2(matrix.get(1, 0)[0], matrix.get(0, 0)[0]); // yaw
+		boolean alternativeApproach = true;
+		double x, y, z;
+		x = y = z = 0;
+		if (alternativeApproach) {
+			x = Math.atan2(matrix.get(1, 0)[0], matrix.get(0, 0)[0]);
+			y = Math.atan2(matrix.get(1, 2)[0], matrix.get(2, 2)[0]);
+			z = Math.atan2(-matrix.get(2, 0)[0], Math.sqrt(matrix.get(2, 1)[0] * matrix.get(2, 1)[0]
+					+ matrix.get(2, 2)[0] * matrix.get(2, 2)[0]));
 		} else {
-			System.out.println(" as a singular matrix");
-			x = Math.atan2(-matrix.get(2, 1)[0], matrix.get(2, 2)[0]);
-			y = Math.atan2(-matrix.get(2, 0)[0], sy);
-			z = 0;
+			
+			double sy = Math.sqrt(matrix.get(0, 0)[0] * matrix.get(0, 0)[0]
+									+ matrix.get(1, 0)[0] * matrix.get(1, 0)[0]);
+			boolean singular = sy < 1e-6;
+			
+			if (!singular) {
+				System.out.println(" as a non singular matrix");
+				x = Math.atan2(matrix.get(2, 1)[0], matrix.get(2, 2)[0]); //roll
+				y = Math.atan2(-matrix.get(2, 0)[0], sy); // pitch
+				z = Math.atan2(matrix.get(1, 0)[0], matrix.get(0, 0)[0]); // yaw
+			} else {
+				System.out.println(" as a singular matrix");
+				x = Math.atan2(-matrix.get(2, 1)[0], matrix.get(2, 2)[0]);
+				y = Math.atan2(-matrix.get(2, 0)[0], sy);
+				z = 0;
+			}
 		}
 		
 		System.out.println("Axes angles: ");
