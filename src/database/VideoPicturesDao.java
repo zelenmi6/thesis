@@ -26,7 +26,7 @@ public class VideoPicturesDao {
 	PostGISStringBuilder postgisBuilder = new PostGISStringBuilder();
 	PreparedStatement addMonitoredAreaNameOnly, getMonitoredAreaId, originSet, setOrigin,
 					  addDataSet, isaVideo, getDataSetInformation, getDataSetCoordinates,
-					  addFrame, isaVideoFrame, getCameraCoordinates, getCameraAngles, frameContainingPoint;
+					  addFrame, isaVideoFrame, getCameraCoordinates, getCameraAngles, boundingPolygonsContainingPoint;
 
 	protected VideoPicturesDao() {
 		try {
@@ -93,6 +93,12 @@ public class VideoPicturesDao {
 			
 			getCameraAngles = connection.prepareStatement("SELECT camera_roll roll, camera_pitch pitch, camera_heading heading "
 					+ "FROM \"Frame\" WHERE id = ?");
+			
+			boundingPolygonsContainingPoint = connection.prepareStatement(
+					"SELECT \"Frame\".id, frame_number from \"Frame\" "
+					+ "INNER JOIN \"VideoFrame\" on \"Frame\".id = \"VideoFrame\".frame_id "
+					+ "WHERE ST_Contains(\"bounding_polygon\", ST_GeometryFromText(?)) "
+					+ "ORDER BY frame_number;");
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -234,6 +240,23 @@ public class VideoPicturesDao {
 		setOrigin.setString(1, postgisBuilder.point3d(lonLatAlt[0], lonLatAlt[1], lonLatAlt[2]));
 		setOrigin.setInt(2, monitoredArea);
 		setOrigin.executeUpdate();
+	}
+	
+	public List<int[]> getFramesContainingPoint2d(double x, double y) throws Exception {
+		String point = postgisBuilder.point2d(x, y);
+		try {
+			boundingPolygonsContainingPoint.setString(1, point);
+			ResultSet rs = boundingPolygonsContainingPoint.executeQuery();
+			List<int[]> frames = new ArrayList<>();
+			while (rs.next()) {
+//				System.out.println("col 1: " + rs.getInt(1) + "col 2: " + rs.getInt(2));
+				frames.add(new int[]{rs.getInt(1), rs.getInt(2)});
+			}
+			return frames;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		throw new SQLException("Unexpected error while getting frames containing a point from the database.");
 	}
 	
 	public void setAutocommit(boolean autocommit) throws SQLException {

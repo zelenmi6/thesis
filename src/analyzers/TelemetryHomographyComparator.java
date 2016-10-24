@@ -44,12 +44,12 @@ public class TelemetryHomographyComparator {
 	}
 	
 	public void compareTelemetryAndHomography(long startMs, long endMs, boolean deleteWhenFinished) {
-		long firstFrame = startMs / 1000 * camera.getFps(); 
+		long firstFrame = (long)((double)startMs / 1000 * camera.getFps()); 
 		long lastFrame = (long)((double)endMs / 1000 * camera.getFps());
 		fg.saveNthFrame ((int)firstFrame, OUTPUT_DIRECTORY);
 		fg.saveNthFrame ((int)lastFrame, OUTPUT_DIRECTORY);
-		String firstImagePath = OUTPUT_DIRECTORY + firstFrame + ".png";
-		String secondImagePath = OUTPUT_DIRECTORY + lastFrame + ".png";
+		String firstImagePath = OUTPUT_DIRECTORY + firstFrame + ".jpg";
+		String secondImagePath = OUTPUT_DIRECTORY + lastFrame + ".jpg";
 		
 		TransformEstimate te = new TransformEstimate(firstImagePath, secondImagePath);
 		List<double[]> rotations = te.getRotations(); // roll, pitch, yaw

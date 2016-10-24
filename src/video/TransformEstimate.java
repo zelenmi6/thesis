@@ -49,14 +49,16 @@ public class TransformEstimate {
 			Mat firstImage = getImage(img1Path);
 			Mat secondImage = getImage(img2Path);
 			
-//			firstImage = undistortImage(firstImage);
-//			secondImage = undistortImage(secondImage);
+			firstImage = undistortImage(firstImage);
+			secondImage = undistortImage(secondImage);
 			
 			// Key point detection
 			MatOfKeyPoint keypointsFirstImage = new MatOfKeyPoint();
 			MatOfKeyPoint keypointsSecondImage = new MatOfKeyPoint();
 			featureDetector.detect(firstImage, keypointsFirstImage);
 			featureDetector.detect(secondImage, keypointsSecondImage);
+//			System.out.println(keypointsFirstImage.size());
+//			System.out.println(keypointsSecondImage.size());
 			
 			// Descriptor extraction
 			Mat descriptorFirstImage = new Mat();
@@ -77,8 +79,8 @@ public class TransformEstimate {
 			    if(dist < min_dist) min_dist = dist;
 			    if(dist > max_dist) max_dist = dist;
 			}
-			System.out.println("-- Max dist : " + max_dist);
-			System.out.println("-- Min dist : " + min_dist);
+//			System.out.println("-- Max dist : " + max_dist);
+//			System.out.println("-- Min dist : " + min_dist);
 			
 			showMatches(firstImage, keypointsFirstImage, secondImage, keypointsSecondImage, matches, false);
 			
@@ -88,8 +90,8 @@ public class TransformEstimate {
 			
 			for (int i = 0; i < descriptorFirstImage.rows(); i++) {
 				// filter out some of the matches if needed
-//				if (matchesList.get(i).distance < 2*min_dist)
-					goodMatches.addLast(matchesList.get(i)); // not filtering anything
+//				if (matchesList.get(i).distance < 3*min_dist)
+//					goodMatches.addLast(matchesList.get(i)); // not filtering anything
 			}
 			
 			gm.fromList(goodMatches);
@@ -116,17 +118,17 @@ public class TransformEstimate {
 			//focal len 5.595994970156251
 			Mat mask = new Mat();
 			Mat cameraMat = new Mat(3, 3, 6);
-			cameraMat.put(0, 0, 1160.91954);
-			cameraMat.put(0, 2, 693.15228);
-			cameraMat.put(1, 1, 1188.49321);
-			cameraMat.put(1, 2, 391.34554);
+			cameraMat.put(0, 0, 582.18394);
+			cameraMat.put(0, 2, 663.50655);
+			cameraMat.put(1, 1, 582.52915);
+			cameraMat.put(1, 2, 378.74541);
 			cameraMat.put(2, 2, 1.);
 //			Mat essentialMat = org.opencv.calib3d.Calib3d.findEssentialMat(firstImageMop2f, secondImageMop2f,
 //					1160.91954, new Point(3.3412105996875003, 2.473086398611111),
 //					org.opencv.calib3d.Calib3d.RANSAC, 0.999, 0.1, mask);
 			Mat essentialMat = org.opencv.calib3d.Calib3d.findEssentialMat(firstImageMop2f, secondImageMop2f,
 					cameraMat,
-					org.opencv.calib3d.Calib3d.LMEDS, 0.999, 1, mask);
+					org.opencv.calib3d.Calib3d.RANSAC, 0.999, 3, mask);
 //			decomposeEssential(essentialMat);
 			
 			Mat R = new Mat();
@@ -152,7 +154,7 @@ public class TransformEstimate {
 		Mat firstRotation = new Mat();
 		Mat secondRotation = new Mat();
 		Mat translation = new Mat();
-		boolean testApproach = true;
+		boolean testApproach = false;
 		if (testApproach) {
 			Mat w = new Mat();
 		    Mat u = new Mat();
@@ -209,19 +211,31 @@ public class TransformEstimate {
 	
 	private Mat undistortImage(Mat distorted) {
 		Mat distortionCoefficients = new Mat(1, 5, CvType.CV_32F);
-		distortionCoefficients.put(0, 0, -0.30109);
-		distortionCoefficients.put(0, 1, 0.28745);
-		distortionCoefficients.put(0, 2, -0.00156);
-		distortionCoefficients.put(0, 3, 0.00039);
-		distortionCoefficients.put(0, 4, -0.23250);
+//		distortionCoefficients.put(0, 0, 0.05431);
+//		distortionCoefficients.put(0, 1, 0.00876);
+//		distortionCoefficients.put(0, 2, 0.00792);
+//		distortionCoefficients.put(0, 3, -0.00886);
+		
+		// Not a fisheye calib
+		distortionCoefficients.put(0, 0, -0.25722);
+		distortionCoefficients.put(0, 1, 0.09022);
+		distortionCoefficients.put(0, 2, -0.00060);
+		distortionCoefficients.put(0, 3, 0.00009);
+		distortionCoefficients.put(0, 4, -0.01662);
 		
 		Mat undistorted = new Mat(distorted.height(), distorted.width(), CvType.CV_8UC3);
 		
+//		Mat cameraMat = new Mat(3, 3, 6);
+//		cameraMat.put(0, 0, 1160.91954);
+//		cameraMat.put(0, 2, 693.15228);
+//		cameraMat.put(1, 1, 1188.49321);
+//		cameraMat.put(1, 2, 391.34554);
+//		cameraMat.put(2, 2, 1.);
 		Mat cameraMat = new Mat(3, 3, 6);
-		cameraMat.put(0, 0, 1160.91954);
-		cameraMat.put(0, 2, 693.15228);
-		cameraMat.put(1, 1, 1188.49321);
-		cameraMat.put(1, 2, 391.34554);
+		cameraMat.put(0, 0, 582.18394);
+		cameraMat.put(0, 2, 663.50655);
+		cameraMat.put(1, 1, 582.52915);
+		cameraMat.put(1, 2, 378.74541);
 		cameraMat.put(2, 2, 1.);
 //		try {
 //			String json = MatSerializer.loadStringFromFile("resources/camera/cameraMatrix_gopro_0.23.json");
@@ -272,8 +286,8 @@ public class TransformEstimate {
 		Mat matFrameGray = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8UC3);
 		org.opencv.imgproc.Imgproc.cvtColor(matFrame, matFrameGray, org.opencv.imgproc.Imgproc.COLOR_RGB2GRAY);
 //		Imshow ims = new Imshow("From video source ... ");
-//		ims.showImage(matFrame);
-		return matFrame;
+//		ims.showImage(matFrameGray);
+		return matFrameGray;
 	}
 	
 	private void printRotationMatrix(Mat matrix, String description) {

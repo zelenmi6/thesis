@@ -15,8 +15,8 @@ import analyzers.VideoAnalyzer;
 import camera_calibration.CameraCalibration;
 import camera_calibration.MatSerializer;
 import cameras.AbstractCamera;
-import cameras.Hero4PlusBlack;
-import cameras.Hero4PlusBlack.Hero3PlusBlackFieldOfView;
+import cameras.Hero4Black;
+import cameras.Hero4Black.Hero4BlackFieldOfView;
 import constants.CameraTesting;
 import database.VideoPicturesDao;
 import geometry.Calculations;
@@ -34,16 +34,20 @@ public class Main {
 	
 	public static void main(String[] args) throws Exception {
 		
+		Calculations.getFramesWithPoint(-13.294068549350916, 3.6692342889354252, 4.);
+		
 //		MatSerializer.printCalibrationMatrixValues("resources/camera/cameraMatrix_gopro_0.23.json");
 		
-//		AbstractCamera camera = new Hero3PlusBlack(Hero3PlusBlackFieldOfView.WIDE_16X9, 25);
+//		AbstractCamera camera = new Hero4Black(Hero4BlackFieldOfView.WIDE_16X9, 25);
 //		TelemetryHomographyComparator comparator = new TelemetryHomographyComparator(
 //				"C:\\Users\\Milan\\Desktop\\26.8.16 data\\fisheye\\GOPR3989_cropped.avi",
 //				"C:\\Users\\Milan\\Desktop\\26.8.16 data\\parsed_logs\\2016_08_26_11_57_56.csv",
 //				camera);
-//		long time = 122000-60000;
+////		long time = 122000-60000;
+////		long offset = 1160*2;
+//		long time = 122000-60000+1160;
 //		long offset = 1160;
-//		comparator.compareTelemetryAndHomography(time, time + offset, false);
+//		comparator.compareTelemetryAndHomography(time, time + offset, true);
 		
 //		VideoVisualizer vv = new VideoVisualizer();
 		
@@ -58,47 +62,6 @@ public class Main {
 //		va.printGpsOfCamera(47145); // frame 1800
 //		va.printGpsOfCamera(20345); // start of telemetry
 		
-//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\20160817_143831.jpg",
-//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\20160817_143837.jpg");
-		
-//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\20160817_150515.jpg",
-//		"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\20160817_150510.jpg"); //posunute v malovani
-		
-//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\20160817_150808.jpg",
-//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\20160817_150804.jpg");
-		
-//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\GVExn.png",
-//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\To7eN.png"); // fungujici priklad, posunute
-		
-//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\gray1.jpg",
-//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\gray2.jpg");
-		
-//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\2gray.jpg",
-//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\2_2gray.jpg");
-		
-//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\malyposun.jpg",
-//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\malyposun2.jpg");
-		
-//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\pokus1.jpg",
-//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\pokus2.jpg");
-		
-//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\resized1.jpg",
-//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\resized2.jpg");
-		
-//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\malyposun.jpg",
-//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\malyposun - copy.jpg");
-		
-//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\multipleRot.jpg",
-//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\multipleRot2.jpg");
-		
-//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\wall1.jpg",
-//				"C:\\Users\\Milan\\Google Drive\\Škola\\Magistr\\Diplomka2\\photos\\wall2.jpg");
-		
-//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3060.png",
-//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3075.png");
-		
-//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\1.png",
-//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\72.png");
 		
 //		CameraCalculator.getBoundingPolygon(CameraTesting.FOVh, CameraTesting.FOVv, 10, CameraTesting.ROLL,
 //				CameraTesting.PITCH, CameraTesting.HEADING);
@@ -111,7 +74,7 @@ public class Main {
 //		frame.setLocationRelativeTo(null);
 //		frame.setVisible(true);
 ////		v.visualizeDataSet(30, 1000, 48); // original data
-//		v.visualizeDataSet(33, 40, 0);
+//		v.visualizeDataSet(34, 40, 0);
 		
 		
 //		va.testConversion(new Vector3d(50.06843579, 14.34322337, 0.5776692915));
@@ -129,7 +92,7 @@ public class Main {
 //		frame.setLocationRelativeTo(null);
 //		frame.setVisible(true);
 		
-//		AbstractCamera camera = new Hero3PlusBlack(Hero3PlusBlackFieldOfView.WIDE_16X9, 25);
+//		AbstractCamera camera = new Hero4PlusBlack(Hero3PlusBlackFieldOfView.WIDE_16X9, 25);
 //		VideoLoader vl = new VideoLoader("nothing yet", "C:/Users/Milan/Desktop/26.8.16 data/parsed_logs/2016_08_26_11_57_56.csv",
 //				"louka2", camera, 0);
 //		(1212/camera.getFps() * 1000)
@@ -146,13 +109,13 @@ public class Main {
 //		grabber.showNthFrame(47145);
 		//48 vterin
 		
-//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\calibration\\GOPR4124.MP4");
-//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\26.8.16 data\\no_fisheye\\GOPR4034.avi");
-//		for (int i = 1; i < 25*13; i += 25) {
-//			grabber.saveNthFrame(i, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\calibFrames\\");
+//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\calibration\\GOPR4141.MP4");
+//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\26.8.16 data\\fisheye\\GOPR3989_cropped.avi");
+//		for (int i = 1; i < 3000; i += 10) {
+//			grabber.saveNthFrame(i, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\FOV\\");
 //		}
-//		grabber.saveNthFrame(25, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
-//		grabber.saveNthFrame(25*5, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(3050, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
+//		grabber.saveNthFrame(3055, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 //		grabber.saveNthFrame(25*11, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 //		grabber.saveNthFrame(75, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 //		grabber.saveNthFrame(100, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
@@ -161,11 +124,11 @@ public class Main {
 //		grabber.saveNthFrame(350, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 		
 		
-		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\yaw2\\25.jpg",
-				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\yaw2\\275.jpg");
+//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\old_data\\roll2\\1.png",
+//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\old_data\\roll2\\25.png");
 		
-//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\36_rect.jpg",
-//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\92_rect.jpg");
+//		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3050.jpg",
+//				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\3055.jpg");
 
 //		System.out.println("Program has finished");
 	}

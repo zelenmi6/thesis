@@ -13,7 +13,8 @@ public class CameraCalculator {
 	public final static Vector3d AXES_ORIGIN = new Vector3d(0, 0, 0);
 	
 	/**
-	 * Get corners of the polygon captured by the camera
+	 * Get corners of the polygon captured by the camera. 
+	 * The points are not yet translated to camera's X-Y coordinates.
 	 * @param FOVh Horizontal field of view in radians
 	 * @param FOVv Vertical field of view in radians
 	 * @param altitude Altitude of the camera in meters
@@ -46,19 +47,23 @@ public class CameraCalculator {
 		return intersections;
 	}
 	
-	public static boolean pointIsInsidePyramid(Vector3d [] rays, Vector3d origin, Vector3d point) {
+	public static boolean pointIsInsidePyramid(Vector3d [] rays, Vector3d cameraPosition, Vector3d point) {
 		Vector3d [] normVectors = new Vector3d[rays.length];
 		Vector4d [] planes = new Vector4d[rays.length];
 		for (int i = 0; i < rays.length; i ++) {
-			normVectors[i] = Calculations.getPlaneNormVector(translatePointFromAxesOriginToCamera(rays[i], origin),
-					translatePointFromAxesOriginToCamera(rays[(i+1)%rays.length], origin), origin);
-//			planes[i] = Calculations.getEquationOfAPlane(translatePointFromAxesOriginToCamera(rays[i], origin),
-//					translatePointFromAxesOriginToCamera(rays[(i+1)%rays.length], origin), origin);
+			normVectors[i] = Calculations.getPlaneNormVector(translatePointFromAxesOriginToCamera(rays[i], cameraPosition),
+					translatePointFromAxesOriginToCamera(rays[(i+1)%rays.length], cameraPosition), cameraPosition);
+//			planes[i] = Calculations.getEquationOfAPlane(translatePointFromAxesOriginToCamera(rays[i], cameraPosition),
+//					translatePointFromAxesOriginToCamera(rays[(i+1)%rays.length], cameraPosition), cameraPosition);
 //			printPlaneForWolfram(planes[i], "f" + i);
 		}
+//		Vector3d cameraCenter = new Vector3d(planes[0].x + planes[1].x + planes[2].x + planes[3].x,
+//				planes[0].y + planes[1].y + planes[2].y + planes[3].y,
+//				planes[0].z + planes[1].z + planes[2].z + planes[3].z);
+//		System.out.println("Camera center: \n" + cameraCenter.toString());
 		
 		for (int i = 0; i < normVectors.length; i ++) {
-			if (Calculations.getPointPlaneDistance(normVectors[i], origin, point) > 0) {
+			if (Calculations.getPointPlaneDistance(normVectors[i], cameraPosition, point) > 0) {
 				return false;
 			}
 		}

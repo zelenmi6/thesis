@@ -7,9 +7,74 @@ import javax.vecmath.Vector2d;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
 
+import cameras.AbstractCamera;
+import cameras.Hero4Black;
+import cameras.Hero4Black.Hero4BlackFieldOfView;
+import cameras.Hero4BlackUndistorted;
+import cameras.Hero4BlackUndistorted.Hero4BlackUndistortedFieldOfView;
 import constants.CameraTesting;
+import database.VideoPicturesDao;
 
 public class Calculations {
+	
+	public static void getFramesWithPoint(double x, double y, double z) throws Exception {
+		VideoPicturesDao dao = VideoPicturesDao.getInstance();
+		List<int[]> frames2d = dao.getFramesContainingPoint2d(x, y);
+		AbstractCamera camera = new Hero4BlackUndistorted(Hero4BlackUndistortedFieldOfView.WIDE_16X9, 25);
+//		List<double[]> intervals = geometry.Calculations.getContinuousIntervalsInSortedList(frames);
+//		for (double [] interval : intervals) {
+//			System.out.println("Interval: " + interval[0] + ", " + interval[1]);
+//		}
+		List<int[]> framesWithPoint = new ArrayList<>();
+		for (int[] frame : frames2d) {
+			double [] coordinates, angles;
+			coordinates = dao.getCameraCoordinates(frame[0]);
+			angles = dao.getCameraAngles(frame[0]);
+
+			Vector3d ray1 = CameraCalculator.ray1(camera.getFovHorizontal(), camera.getFovVertical());
+			Vector3d ray2 = CameraCalculator.ray2(camera.getFovHorizontal(), camera.getFovVertical());
+			Vector3d ray3 = CameraCalculator.ray3(camera.getFovHorizontal(), camera.getFovVertical());
+			Vector3d ray4 = CameraCalculator.ray4(camera.getFovHorizontal(), camera.getFovVertical());
+			
+			Vector3d [] rotatedVectors = CameraCalculator.rotateRays(
+					ray1, ray2, ray3, ray4, angles[0], angles[1], angles[2]);
+			boolean inside = CameraCalculator.pointIsInsidePyramid(
+					rotatedVectors, new Vector3d(coordinates[0], coordinates[1], coordinates[2]),
+					new Vector3d(x, y, z));
+			if (inside) {
+				System.out.println("Inside, frame id: " + frame[0] + " frame num: " + frame[1] + " time: " + frameToTime(frame[1]));
+			} else {
+				System.out.println("Outside, frame id: " + frame[0] + " frame num: " + frame[1] + " time: " + frameToTime(frame[1]));
+			}
+		}
+	}
+	
+	private static int frameToMinutes(int frameNum) {
+		return frameNum / 25 / 60;
+	}
+	
+	private static int frameToSeconds(int frameNum) {
+		return frameNum / 25 % 60;
+	}
+	
+	private static String frameToTime(int frameNum) {
+		return frameToMinutes(frameNum) + ":" + frameToSeconds(frameNum);
+	}
+	
+	public static List<double[]> getContinuousIntervalsInSortedList(List<int[]> numbers) {
+		List<double[]> intervals = new ArrayList<>();
+		int startOfInterval = numbers.get(0)[1];
+		int lastNum = numbers.get(0)[1];
+		
+		for (int i = 1; i < numbers.size(); i ++) {
+			if (numbers.get(i)[1] - lastNum != 1) {
+				intervals.add(new double[]{startOfInterval, lastNum});
+				startOfInterval = numbers.get(i)[1];
+			}
+			lastNum = numbers.get(i)[1];
+		}
+		return intervals;
+	}
 	
 	public static Vector4d getEquationOfAPlane(Vector3d origin, Vector3d point) {
 		// Find the equation of the plane ax + by + cz - d == 0;
