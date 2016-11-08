@@ -9,5 +9,5 @@ public class CameraTesting {
 	public final static double FOVv = Math.toRadians(69.5);
 	public final static double ZOOM = 10;
 	public final static double POINT_SIZE = 7;
-	public final static double MAX_DISTANCE = 100;
+	public final static double MAX_DISTANCE = 100; // meters
 }

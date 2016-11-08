@@ -10,6 +10,14 @@ public class ConvexHull {
 		return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
 	}
 
+	/**
+	 * Finds convex hull of given points. Works with a 3-d vector, however, 
+	 * takes only the x and y dimensions into account in order to remain 
+	 * consistent with the rest of the program. Might need some further 
+	 * refactoring to improve the program's semantics.
+	 * @param P
+	 * @return
+	 */
 	public static Vector3d[] convex_hull(Vector3d[] P) {
 
 		if (P.length > 1) {

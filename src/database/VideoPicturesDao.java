@@ -19,12 +19,18 @@ import org.postgis.Polygon;
 import cameras.AbstractCamera;
 import loaders.Telemetry;
 
+/**
+ * Not thread safe! Just for development purposes.
+ * @author Milan
+ *
+ */
 public class VideoPicturesDao {
 
 	private static VideoPicturesDao instance = null;
 	private Connection connection = null;
 	PostGISStringBuilder postgisBuilder = new PostGISStringBuilder();
-	PreparedStatement addMonitoredAreaNameOnly, getMonitoredAreaId, originSet, setOrigin,
+	PreparedStatement addMonitoredAreaNameOnly, getMonitoredAreaId, originSet, setOrigin, getMonitoredAreaBoundingPolygon,
+						saveMonitoredAreaBoundingPolygon,
 					  addDataSet, isaVideo, getDataSetInformation, getDataSetCoordinates,
 					  addFrame, isaVideoFrame, getCameraCoordinates, getCameraAngles, boundingPolygonsContainingPoint;
 
@@ -48,6 +54,15 @@ public class VideoPicturesDao {
 			getMonitoredAreaId = connection.prepareStatement("SELECT id from \"MonitoredArea\" WHERE \"name\" = ?");
 
 			originSet = connection.prepareStatement("SELECT ST_AsText(origin) from \"MonitoredArea\" WHERE id = ?");
+			
+			getMonitoredAreaBoundingPolygon = connection.prepareStatement(
+					"SELECT ST_AsText(bounding_polygon) FROM \"MonitoredArea\" "
+					+ "WHERE id = ?");
+			
+			saveMonitoredAreaBoundingPolygon = connection.prepareStatement(
+					"UPDATE \"MonitoredArea\" "
+					+ "SET bounding_polygon = ST_GeographyFromText(?) " 
+					+ "WHERE id = ?");
 
 			setOrigin = connection
 					.prepareStatement("UPDATE \"MonitoredArea\" SET origin = ST_GeographyFromText(?) WHERE id = ?");
@@ -125,6 +140,35 @@ public class VideoPicturesDao {
 		}
 		return rs.getInt(1);
 	}
+	
+	// longitude, latitude
+	public List<Vector3d> getMonitoredAreaBoundingPolygon(int areaId) throws SQLException {
+		getMonitoredAreaBoundingPolygon.setInt(1, areaId);
+		ResultSet rs = getMonitoredAreaBoundingPolygon.executeQuery();
+		List<Vector3d> boundingPolygon = new ArrayList<>();
+		if (!rs.next()) {
+			throw new SQLException("Error whiel retrieving a monitored area bounding polygon.");
+		} else {
+			String polygonString = rs.getString(1);
+			if (polygonString == null) {
+				return boundingPolygon;
+			}
+			Polygon pl = new Polygon(polygonString);
+			LinearRing lr = (LinearRing)pl.getSubGeometry(0);
+			for (int i = 0; i < lr.getPoints().length - 1; i ++) {
+				boundingPolygon.add(new Vector3d(lr.getPoint(i).x, lr.getPoint(i).y, 0));
+			}
+		}
+		
+		return boundingPolygon;
+	}
+	
+	public void saveMonitoredAreaBoundingPolygon(int areaId, Vector3d[] boundingPolygon) throws SQLException {
+		String polygon = postgisBuilder.polygo2dFrom3dVector(boundingPolygon);
+		saveMonitoredAreaBoundingPolygon.setString(1, polygon);
+		saveMonitoredAreaBoundingPolygon.setInt(2, areaId);
+		saveMonitoredAreaBoundingPolygon.executeUpdate();
+	}
 
 	//!TODO refactor to two separate methods for PictureSet and Video
 	public int addDataSet(int monitoredAreaid, String targetPath, AbstractCamera camera, Timestamp timestamp,
@@ -185,7 +229,7 @@ public class VideoPicturesDao {
 	public void addFrame(int dataSetId, Telemetry telemetry, Vector3d[] boundingPolygon, int frameNumber)
 			throws SQLException {
 		addFrame.setInt(1, dataSetId);
-		addFrame.setString(2, postgisBuilder.polygo2dFrom3dVector(boundingPolygon));
+		addFrame.setString(2, postgisBuilder.polygon2d4cornersFrom3dVector(boundingPolygon));
 		addFrame.setString(3,
 				postgisBuilder.point3d(telemetry.coordinates.x, telemetry.coordinates.y, telemetry.coordinates.z));
 		addFrame.setDouble(4, telemetry.heading);

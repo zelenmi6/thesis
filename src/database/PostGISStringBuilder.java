@@ -35,7 +35,12 @@ public class PostGISStringBuilder {
 		return sb.toString();
 	}
 	
-	public String polygon2d(Vector2d [] polygon) {
+	/**
+	 * Only works for a polygon with 4 corners
+	 * @param polygon
+	 * @return
+	 */
+	public String polygon2d4corners(Vector2d [] polygon) {
 		sb.setLength(0);
 		sb.append("POLYGON((").append(polygon[0].x).append(" ").append(polygon[0].y).append(", ")
 		.append(polygon[1].x).append(" ").append(polygon[1].y).append(", ")
@@ -46,7 +51,12 @@ public class PostGISStringBuilder {
 		return sb.toString();
 	}
 	
-	public String polygo2dFrom3dVector(Vector3d [] polygon) {
+	/**
+	 * Only works for a polygon with 4 corners
+	 * @param polygon
+	 * @return
+	 */
+	public String polygon2d4cornersFrom3dVector(Vector3d [] polygon) {
 		if (polygon == null) {
 			return "POLYGON((0 0, 1 1, 2 2, 0 0))";
 		}
@@ -58,6 +68,16 @@ public class PostGISStringBuilder {
 		.append(polygon[3].x).append(" ").append(polygon[3].y).append(", ")
 		.append(polygon[0].x).append(" ").append(polygon[0].y)
 		.append("))");
+		return sb.toString();
+	}
+	
+	public String polygo2dFrom3dVector(Vector3d [] polygon) {
+		sb.setLength(0);
+		sb.append("POLYGON((");
+		for (int i = 0; i < polygon.length; i ++) {
+			sb.append(polygon[i].x).append(" ").append(polygon[i].y).append(", ");
+		}
+		sb.append(polygon[0].x).append(" ").append(polygon[0].y).append("))");
 		return sb.toString();
 	}
 	

@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.vecmath.GMatrix;
 import javax.vecmath.GVector;
@@ -15,14 +17,19 @@ import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 
 import cameras.AbstractCamera;
+import constants.CameraTesting;
+import database.PictureTelemetryDao;
 import database.VideoPicturesDao;
 import geometry.Calculations;
 import geometry.CameraCalculator;
+import geometry.ConvexHull;
+import geometry.GeoLocation;
 
 public class VideoLoader {
 	
 	private final long TELEMETRY_INTERVAL_MS = 0;
 	private final double PITCH_OFFSET_DEGREES = -45;
+//	private final double PITCH_OFFSET_DEGREES = 0;
 	
 	private AbstractCamera camera = null;
 	private VideoPicturesDao dao = VideoPicturesDao.getInstance();
@@ -31,6 +38,8 @@ public class VideoLoader {
 	private Timestamp initialTime = null;
 	private Timestamp telemetryStartTime = null;
 	private Timestamp lastTelemetryTime = null;
+	
+	private AreaBoundingPolygon areaBoundingPolygon;
 	
 	
 	public VideoLoader(String videoPath, String telemetryPath, String monitoredAreaName, AbstractCamera camera,
@@ -47,6 +56,7 @@ public class VideoLoader {
 			int monitoredAreaId = dao.addMonitoredArea(monitoredAreaName);
 			int dataSetId = dao.addDataSet(monitoredAreaId, videoPath, camera, initialTime, true);
 			readTelemetry(br, monitoredAreaId, dataSetId);
+			areaBoundingPolygon.computeNewBoundingPolygon();
 			dao.commit();
 		} catch (FileNotFoundException e) {
 			dao.rollback();
@@ -58,7 +68,7 @@ public class VideoLoader {
 			dao.rollback();
 			e.printStackTrace();
 		}
-		File videoFile = new File(videoPath);
+//		File videoFile = new File(videoPath);
 	}
 	
 	private void readMeta(BufferedReader br, long telemetryStartTime) throws IOException {
@@ -86,8 +96,10 @@ public class VideoLoader {
 			
 			long time = (telemetry.timestamp.getTime() - initialTime.getTime()) / 1000;
 			int frame = Math.round(time * camera.getFps());
-			dao.addFrame(dataSetId, telemetry, getBoundingPolygon(telemetry), frame);
+			Vector3d [] boundingPolygon = getBoundingPolygon(telemetry);
+			dao.addFrame(dataSetId, telemetry, boundingPolygon, frame);
 			lastTelemetryTime = telemetry.timestamp;
+			System.out.println(telemetry);
 		}
 		
 		while ((line = br.readLine()) != null) {
@@ -97,7 +109,8 @@ public class VideoLoader {
 			
 			long time = (telemetry.timestamp.getTime() - initialTime.getTime());
 			int frame = Math.round(time * camera.getFps()) / 1000;
-			dao.addFrame(dataSetId, telemetry, getBoundingPolygon(telemetry), frame);
+			Vector3d [] boundingPolygon = getBoundingPolygon(telemetry);
+			dao.addFrame(dataSetId, telemetry, boundingPolygon, frame);
 			lastTelemetryTime = telemetry.timestamp;
 			System.out.println(telemetry);
 		}
@@ -128,6 +141,7 @@ public class VideoLoader {
 			rotationMatrix = hw.utils.GeographyUtils.getRotationMatrix(longitude, latitude);
 			translationVector = hw.utils.GeographyUtils.getTranslationVector(longitude, latitude, altitude);
 		}
+		areaBoundingPolygon = new AreaBoundingPolygon(monitoredAreaId);
 	}
 	
 	private double [] getLongitudeLatitudeAltitudeFromTelemetry(String line) {
@@ -139,16 +153,83 @@ public class VideoLoader {
 	private Telemetry parseTelemetryLine(String telemetry) {
 		String [] tokens = telemetry.split(",");
 		
-		Vector3d cartCoords = hw.utils.GeographyUtils.fromGPStoCart(Double.parseDouble(tokens[2]), 
-				Double.parseDouble(tokens[1]), 
-				Double.parseDouble(tokens[3]), 
-				rotationMatrix, translationVector);
+		double longitude = Double.parseDouble(tokens[2]);
+		double latitude = Double.parseDouble(tokens[1]);
+		Vector3d cartCoords = hw.utils.GeographyUtils.fromGPStoCart(longitude, latitude, 
+				Double.parseDouble(tokens[3]), rotationMatrix, translationVector);
+		
+		areaBoundingPolygon.addPointsToBoundingPolygon(longitude, latitude);
 		
 		return new Telemetry(new Timestamp(Long.parseLong(tokens[0]) + telemetryStartTime.getTime()),
 				cartCoords,
 				Math.toRadians(Double.parseDouble(tokens[4])),
 				Math.toRadians(Double.parseDouble(tokens[5]) + PITCH_OFFSET_DEGREES),
 				Math.toRadians(Double.parseDouble(tokens[6])));
+	}
+	
+private class AreaBoundingPolygon {
+		List<Vector3d> boundingPolygonGPS = new ArrayList<>();
+		int monitoredAreaId;
+		
+		public AreaBoundingPolygon(int monitoredAreaId) throws SQLException {
+			VideoPicturesDao dao = VideoPicturesDao.getInstance();
+				// get bounding polygon in GPS
+			this.monitoredAreaId = monitoredAreaId;
+				boundingPolygonGPS = dao.getMonitoredAreaBoundingPolygon(monitoredAreaId);
+//				printBoundingPolygonCart();
+//				printBoundingPolygonGPS();
+			// najit v db bounding_polygon
+				// pokud neni, tak prazdny
+				// pokud ma 1, nebo 2 body, tak co?
+			// prevest na kart
+			// pri nacitani pridavat dalsi body
+			// provest convex hull
+			// mozna prescalovat, aby se kompenzovaly nepresnosti?
+			// ulozit do db
+				System.out.println("BP ready");
+		}
+		
+		public void addPointsToBoundingPolygon(double longitude, double latitude) {
+			GeoLocation cameraPosition = GeoLocation.fromDegrees(latitude, longitude);
+			GeoLocation[] geoLocation = cameraPosition.boundingCoordinates(CameraTesting.MAX_DISTANCE / 1000, 6371.01);
+			boundingPolygonGPS.add(new Vector3d(geoLocation[0].getLatitudeInDegrees(), geoLocation[0].getLongitudeInDegrees(), 0));
+			boundingPolygonGPS.add(new Vector3d(geoLocation[1].getLatitudeInDegrees(), geoLocation[0].getLongitudeInDegrees(), 0));
+			boundingPolygonGPS.add(new Vector3d(geoLocation[0].getLatitudeInDegrees(), geoLocation[1].getLongitudeInDegrees(), 0));
+			boundingPolygonGPS.add(new Vector3d(geoLocation[1].getLatitudeInDegrees(), geoLocation[1].getLongitudeInDegrees(), 0));
+			
+		}
+		
+		public void computeNewBoundingPolygon() {
+			Vector3d[] newBoundingPolygon = ConvexHull.convex_hull(
+					boundingPolygonGPS.toArray(new Vector3d[boundingPolygonGPS.size()]));
+			System.out.println("Printing new polygon");
+			try {
+				dao.saveMonitoredAreaBoundingPolygon(monitoredAreaId, newBoundingPolygon);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			printBoundingPolygonGPS(newBoundingPolygon);
+//			for (Vector3d corner : newBoundingPolygon) {
+//				System.out.println("x: " + corner.x + " y: " + corner.y);
+//			}
+		}
+		
+		
+		private void printBoundingPolygonGPS() {
+			System.out.println("Printing new polygon");
+			for (Vector3d corner : boundingPolygonGPS) {
+				System.out.println("lat, long, alt: " + corner.y + ", " + corner.x + ", " + corner.z);
+			}
+		}
+		
+		private void printBoundingPolygonGPS(Vector3d[] boundingPolygon) {
+			System.out.println("Printing new polygon");
+			for (Vector3d corner : boundingPolygon) {
+//				Vector3d gpsCoord = hw.utils.GeographyUtils.fromCartToGPS(corner.x, corner.y, corner.z, 
+//						rotationMatrix, translationVector);
+				System.out.println(corner.y + ", " + corner.x + " z: " + corner.z);
+			}
+		}
 	}
 }
 

@@ -22,6 +22,7 @@ import database.VideoPicturesDao;
 import geometry.Calculations;
 import geometry.CameraCalculator;
 import geometry.ConvexHull;
+import geometry.GeoLocation;
 import loaders.VideoLoader;
 import video.FrameGrabber;
 import video.OpenCVGrabber;
@@ -34,7 +35,11 @@ public class Main {
 	
 	public static void main(String[] args) throws Exception {
 		
-		Calculations.getFramesWithPoint(-13.294068549350916, 3.6692342889354252, 4.);
+//		GeoLocation cameraPosition = GeoLocation.fromDegrees(50.086213, 14.434772);
+//		GeoLocation[] geoLocation = cameraPosition.boundingCoordinates(CameraTesting.MAX_DISTANCE / 1000, 6371.01);
+//		System.out.println("Waiting");
+		
+//		Calculations.getFramesWithPoint(-13.294068549350916, 3.6692342889354252, 4.);
 		
 //		MatSerializer.printCalibrationMatrixValues("resources/camera/cameraMatrix_gopro_0.23.json");
 		
