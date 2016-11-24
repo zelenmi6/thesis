@@ -10,6 +10,9 @@ import org.postgis.LinearRing;
 import org.postgis.Point;
 import org.postgis.Polygon;
 
+import analyzers.OdometricAngles;
+import analyzers.OdometryAnalyzer;
+import analyzers.OdometryTelemetryComparator;
 import analyzers.TelemetryHomographyComparator;
 import analyzers.VideoAnalyzer;
 import camera_calibration.CameraCalibration;
@@ -115,9 +118,9 @@ public class Main {
 		//48 vterin
 		
 //		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\calibration\\GOPR4141.MP4");
-//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\26.8.16 data\\fisheye\\GOPR3989_cropped.avi");
-//		for (int i = 1; i < 3000; i += 10) {
-//			grabber.saveNthFrame(i, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\FOV\\");
+//		FrameGrabber grabber = new FrameGrabber("C:\\Users\\Milan\\Desktop\\telemetry_test\\GOPR4142.avi");
+//		for (int i = 1; i <= 2581; i += 1) {
+//			grabber.saveNthFrame(i, "C:\\Users\\Milan\\Desktop\\telemetry_test\\frames\\");
 //		}
 //		grabber.saveNthFrame(3050, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 //		grabber.saveNthFrame(3055, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
@@ -128,6 +131,45 @@ public class Main {
 //		grabber.saveNthFrame(150, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 //		grabber.saveNthFrame(350, "C:\\JavaPrograms\\thesis\\resources\\output\\frames\\");
 		
+//		int pictureNum = 2581/25;
+//		int pictureNum = 3;
+//		int[] chain = new int[]{350, 375};
+//		int[] indices = new int[pictureNum];
+//		for (int i = 1; i <= pictureNum; i ++) {
+//			indices[i-1] = i*25;
+//		}
+//		int[][] pairs = new int[][]{{1, 25},{55, 88}};
+		int[][] pairs = new int[][]{{498, 560}, {498, 618}, {618, 677}, {618, 762}, {677, 762}};
+		
+//		OdometricAngles oa = new OdometricAngles("C:\\Users\\Milan\\Desktop\\telemetry_test\\frames\\", "jpg");
+//		try {
+//			oa.runCalculationChain(chain);
+//			oa.runCalculationPairs(pairs);
+//		} catch (Exception e) {
+//			// nothing
+//		} finally {
+//			oa.serializeResults("pairResultTest.ser");
+//		}
+			
+		OdometryTelemetryComparator odometryComparator = 
+				new OdometryTelemetryComparator("C:\\Users\\Milan\\Desktop\\telemetry_test\\frames\\pairResultTest.ser",
+						pairs, 25);
+		odometryComparator.loadTelemetry("C:\\Users\\Milan\\Desktop\\telemetry_test\\apmLog\\2016_11_24_15_50_07.csv");
+		odometryComparator.compareTelemetryOdometry();
+		
+//		OdometryAnalyzer odometryAnalyzer = 
+//				new OdometryAnalyzer("C:\\Users\\Milan\\Desktop\\telemetry_test\\frames\\results_every25_frame.ser", 1000, 25);
+//		odometryAnalyzer.printRollForWolfram();
+//		odometryAnalyzer.printRollComulativeForWolfram();
+//		odometryAnalyzer.printRollDebug();
+			
+		
+		
+//		List<double[]> rotations = oa.deserializeResults("testResults.ser");
+//		System.out.println("Ready");
+		
+//		TransformEstimate te = new TransformEstimate("C:\\Users\\Milan\\Desktop\\telemetry_test\\frames\\521.jpg",
+//				"C:\\Users\\Milan\\Desktop\\telemetry_test\\frames\\586.jpg");
 		
 //		TransformEstimate te = new TransformEstimate("C:\\JavaPrograms\\thesis\\resources\\output\\frames\\old_data\\roll2\\1.png",
 //				"C:\\JavaPrograms\\thesis\\resources\\output\\frames\\old_data\\roll2\\25.png");

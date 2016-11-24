@@ -35,7 +35,6 @@ public class TransformEstimate {
 //	static{ System.loadLibrary("opencv_java300"); }
 	static{ System.loadLibrary("libopencv_java310"); }
 	
-	// SIFT a SURF jsou v Jave bugly
 	FeatureDetector featureDetector = FeatureDetector.create(FeatureDetector.SURF);
 	DescriptorExtractor descriptorExtractor = DescriptorExtractor.create(DescriptorExtractor.SURF );
 	DescriptorMatcher descriptorMatcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_SL2); // BRUTEFORCE_SL2 = 6**
@@ -91,7 +90,7 @@ public class TransformEstimate {
 			for (int i = 0; i < descriptorFirstImage.rows(); i++) {
 				// filter out some of the matches if needed
 //				if (matchesList.get(i).distance < 3*min_dist)
-//					goodMatches.addLast(matchesList.get(i)); // not filtering anything
+					goodMatches.addLast(matchesList.get(i)); // not filtering anything
 			}
 			
 			gm.fromList(goodMatches);
@@ -127,8 +126,7 @@ public class TransformEstimate {
 //					1160.91954, new Point(3.3412105996875003, 2.473086398611111),
 //					org.opencv.calib3d.Calib3d.RANSAC, 0.999, 0.1, mask);
 			Mat essentialMat = org.opencv.calib3d.Calib3d.findEssentialMat(firstImageMop2f, secondImageMop2f,
-					cameraMat,
-					org.opencv.calib3d.Calib3d.RANSAC, 0.999, 3, mask);
+					cameraMat, org.opencv.calib3d.Calib3d.RANSAC, 0.999, 3, mask);
 //			decomposeEssential(essentialMat);
 			
 			Mat R = new Mat();

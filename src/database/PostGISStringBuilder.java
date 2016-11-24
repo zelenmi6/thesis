@@ -53,6 +53,7 @@ public class PostGISStringBuilder {
 	
 	/**
 	 * Only works for a polygon with 4 corners
+	 * Possibly replaceable by polygo2dFrom3dVector
 	 * @param polygon
 	 * @return
 	 */
