@@ -64,8 +64,8 @@ public class OdometryTelemetryComparator {
 							telemetryPitchDifference + ", Yaw: " + telemetryYawDifference);
 		
 		System.out.println(" Odometry results:");
-		System.out.println("  Roll: " + odometry.get(imgPairIdx)[0] + ", pitch: " +
-							odometry.get(imgPairIdx)[1] + ", yaw:" + odometry.get(imgPairIdx)[2]);
+		System.out.println("  Roll: " + odometry.get(imgPairIdx)[0] * -1 + ", pitch: " +
+							odometry.get(imgPairIdx)[1] * -1 + ", yaw:" + odometry.get(imgPairIdx)[2]);
 		
 		
 	}

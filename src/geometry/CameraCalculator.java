@@ -96,7 +96,7 @@ public class CameraCalculator {
 	private static void limitRange(Vector3d[] intersections, Vector3d [] rays, double altitude, Vector3d origin) {
 		for (int i = 0; i < intersections.length; i ++) {
 			if (quadrantChanged(rays[i], intersections[i])){
-				// if the ray is aiming over the horizont the quadrant of intersections changes
+				// if the ray is aiming over the horizon, the quadrant of intersections changes
 				// that way we know we have to limit our range of view
 				limitDistanceOfView(intersections[i], rays[i]);
 			} else if (Calculations.distance3dPoints(origin, intersections[i]) > CameraTesting.MAX_DISTANCE) {
@@ -113,25 +113,25 @@ public class CameraCalculator {
 	}
 	
 	public static Vector3d ray1(double FOVh, double FOVv) {
-		Vector3d ray = new Vector3d(Math.tan(FOVh/2), Math.tan(FOVv/2), -1);
+		Vector3d ray = new Vector3d(Math.tan(FOVv/2), Math.tan(FOVh/2), -1);
 		ray.normalize();
 		return ray;
 	}
 	
 	public static Vector3d ray2(double FOVh, double FOVv) {
-		Vector3d ray = new Vector3d(Math.tan(FOVh/2), -Math.tan(FOVv/2), -1);
+		Vector3d ray = new Vector3d(Math.tan(FOVv/2), -Math.tan(FOVh/2), -1);
 		ray.normalize();
 		return ray;
 	}
 	
 	public static Vector3d ray3(double FOVh, double FOVv) {
-		Vector3d ray = new Vector3d(-Math.tan(FOVh/2), -Math.tan(FOVv/2), -1);
+		Vector3d ray = new Vector3d(-Math.tan(FOVv/2), -Math.tan(FOVh/2), -1);
 		ray.normalize();
 		return ray;
 	}
 	
 	public static Vector3d ray4(double FOVh, double FOVv) {
-		Vector3d ray = new Vector3d(-Math.tan(FOVh/2), Math.tan(FOVv/2), -1);
+		Vector3d ray = new Vector3d(-Math.tan(FOVv/2), Math.tan(FOVh/2), -1);
 		ray.normalize();
 		return ray;
 	}

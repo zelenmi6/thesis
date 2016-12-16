@@ -49,6 +49,39 @@ public class Calculations {
 		}
 	}
 	
+	// !TODO refactor, almost duplicate method
+	public static void getFramesWithPoint(double x, double y, double z, int dataSetId) throws Exception {
+		VideoPicturesDao dao = VideoPicturesDao.getInstance();
+		List<int[]> frames2d = dao.getFramesContainingPoint2dFromDataSet(x, y, dataSetId);
+		AbstractCamera camera = new Hero4BlackUndistorted(Hero4BlackUndistortedFieldOfView.WIDE_16X9, 25);
+//		List<double[]> intervals = geometry.Calculations.getContinuousIntervalsInSortedList(frames);
+//		for (double [] interval : intervals) {
+//			System.out.println("Interval: " + interval[0] + ", " + interval[1]);
+//		}
+		List<int[]> framesWithPoint = new ArrayList<>();
+		for (int[] frame : frames2d) {
+			double [] coordinates, angles;
+			coordinates = dao.getCameraCoordinates(frame[0]);
+			angles = dao.getCameraAngles(frame[0]);
+
+			Vector3d ray1 = CameraCalculator.ray1(camera.getFovHorizontal(), camera.getFovVertical());
+			Vector3d ray2 = CameraCalculator.ray2(camera.getFovHorizontal(), camera.getFovVertical());
+			Vector3d ray3 = CameraCalculator.ray3(camera.getFovHorizontal(), camera.getFovVertical());
+			Vector3d ray4 = CameraCalculator.ray4(camera.getFovHorizontal(), camera.getFovVertical());
+			
+			Vector3d [] rotatedVectors = CameraCalculator.rotateRays(
+					ray1, ray2, ray3, ray4, angles[0], angles[1], angles[2]);
+			boolean inside = CameraCalculator.pointIsInsidePyramid(
+					rotatedVectors, new Vector3d(coordinates[0], coordinates[1], coordinates[2]),
+					new Vector3d(x, y, z));
+			if (inside) {
+				System.out.println("Inside, frame id: " + frame[0] + " frame num: " + frame[1] + " time: " + frameToTime(frame[1]));
+			} else {
+				System.out.println("Outside, frame id: " + frame[0] + " frame num: " + frame[1] + " time: " + frameToTime(frame[1]));
+			}
+		}
+	}
+	
 	private static int frameToMinutes(int frameNum) {
 		return frameNum / 25 / 60;
 	}

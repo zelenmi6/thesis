@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.vecmath.Vector3d;
@@ -31,8 +32,9 @@ public class VideoPicturesDao {
 	PostGISStringBuilder postgisBuilder = new PostGISStringBuilder();
 	PreparedStatement addMonitoredAreaNameOnly, getMonitoredAreaId, originSet, setOrigin, getMonitoredAreaBoundingPolygon,
 						saveMonitoredAreaBoundingPolygon,
-					  addDataSet, isaVideo, getDataSetInformation, getDataSetCoordinates,
-					  addFrame, isaVideoFrame, getCameraCoordinates, getCameraAngles, boundingPolygonsContainingPoint;
+					  addDataSet, isaVideo, getDataSetInformation, getDataSetCoordinates, getFrameIdsAndFrameNumbersAndAltitudesFromDataSet,
+					  addFrame, isaVideoFrame, getCameraCoordinates, getFrameNumbersAndCameraCoordinatesFromDataSet, getCameraAngles, boundingPolygonsContainingPoint,
+					    boundingPolygonsContainingPointFromDataSet;
 
 	protected VideoPicturesDao() {
 		try {
@@ -90,7 +92,23 @@ public class VideoPicturesDao {
 			
 			getDataSetCoordinates = connection.prepareStatement(
 					"SELECT ST_AsText(bounding_polygon) poly FROM \"Frame\" "
-					+ "WHERE data_set_id = ?");
+					+ "WHERE data_set_id = ? "
+					+ "ORDER BY id");
+			
+			getFrameIdsAndFrameNumbersAndAltitudesFromDataSet = connection.prepareStatement(
+					"SELECT frame_id, frame_number,  ST_Z(frames.camera_coordinates) altitude "
+					+ "FROM "
+					+ "(SELECT * FROM \"DataSet\" WHERE id = ?) as ds "
+					+ "inner join (SELECT f.id frame_id, f.data_set_id data_set_id, vf.frame_number frame_number, f.camera_coordinates camera_coordinates "
+					+ "FROM \"Frame\" f "
+					+ "inner join \"VideoFrame\" vf on f.id = vf.frame_id) as frames on ds.id = frames.data_set_id;");
+			
+//			= connection.prepareStatement("SELECT f.id id "
+//							+ "FROM \"DataSet\" ds "
+//							+ "inner join \"Frame\" f on ds.id = f.data_set_id "
+//							+ "WHERE ds.id = ? "
+//							+ "AND "
+//							+ "f.frame_number = ?;");
 
 			/////////////////////////// Frames /////////////////////////////
 
@@ -106,6 +124,13 @@ public class VideoPicturesDao {
 					+ "ST_Y(camera_coordinates) \"y\", ST_Z(camera_coordinates) \"z\" "
 					+ "FROM \"Frame\" WHERE id = ?");
 			
+			getFrameNumbersAndCameraCoordinatesFromDataSet = connection.prepareStatement("SELECT vf.frame_number frame_number, "
+					+ "ST_X(fr.camera_coordinates) \"x\", ST_Y(fr.camera_coordinates) \"y\", "
+					+ "ST_Z(fr.camera_coordinates) \"z\", fr.camera_heading heading FROM \"Frame\" fr "
+					+ "INNER JOIN \"DataSet\" ds on fr.data_set_id = ds.id "
+					+ "INNER JOIN \"VideoFrame\" vf on fr.id = vf.frame_id "
+					+ "WHERE ds.id = ?");
+			
 			getCameraAngles = connection.prepareStatement("SELECT camera_roll roll, camera_pitch pitch, camera_heading heading "
 					+ "FROM \"Frame\" WHERE id = ?");
 			
@@ -113,6 +138,14 @@ public class VideoPicturesDao {
 					"SELECT \"Frame\".id, frame_number from \"Frame\" "
 					+ "INNER JOIN \"VideoFrame\" on \"Frame\".id = \"VideoFrame\".frame_id "
 					+ "WHERE ST_Contains(\"bounding_polygon\", ST_GeometryFromText(?)) "
+					+ "ORDER BY frame_number;");
+			
+			boundingPolygonsContainingPointFromDataSet  = connection.prepareStatement(
+					"SELECT \"Frame\".id, frame_number from \"Frame\" "
+					+ "INNER JOIN \"VideoFrame\" on \"Frame\".id = \"VideoFrame\".frame_id "
+					+ "WHERE data_set_id = ? "
+					+ "AND "
+					+ "ST_Contains(\"bounding_polygon\", ST_GeometryFromText(?)) "
 					+ "ORDER BY frame_number;");
 
 		} catch (SQLException e) {
@@ -195,7 +228,7 @@ public class VideoPicturesDao {
 		isaVideo.executeUpdate();
 	}
 	
-	public void getDataSetInformation(int dataSetId) throws SQLException {
+	public void printDataSetInformation(int dataSetId) throws SQLException {
 		getDataSetInformation.setInt(1, dataSetId);
 		ResultSet rs = getDataSetInformation.executeQuery();
 		ResultSetMetaData rsmd = rs.getMetaData();
@@ -208,6 +241,22 @@ public class VideoPicturesDao {
 		    }
 		    System.out.println("");
 		}
+	}
+	
+	/**
+	 * Gets all frames' ids, frame indices in the video and the camera's altitude of each frame from a DataSet
+	 * @param dataSetId Id of a dataset
+	 * @return List containit elements in format {frame id, frame index, camera altitude}
+	 * @throws Exception
+	 */
+	public List<double[]> getFrameIdsAndFrameNumbersAndAltitudesFromDataSet(int dataSetId) throws Exception {
+		getFrameIdsAndFrameNumbersAndAltitudesFromDataSet.setInt(1, dataSetId);
+		ResultSet rs = getFrameIdsAndFrameNumbersAndAltitudesFromDataSet.executeQuery();
+		List<double[]> info = new ArrayList<>();
+		while (rs.next()) {
+			info.add(new double[]{rs.getDouble(1), rs.getDouble(2), rs.getDouble(3)});
+		}
+		return info;
 	}
 	
 	public List<Vector3d[]> getDataSetCoordinates(int dataSetId) throws SQLException {
@@ -271,6 +320,22 @@ public class VideoPicturesDao {
 //		System.out.println("x: " + rs.getDouble(1) + ", y: " + rs.getDouble(2) + ", z: " + rs.getDouble(3));
 	}
 	
+	/**
+	 * Returns a map where the key is the frame number and the value are the frame's corresponding camera coordinates
+	 * @param dataSetId Id of the queried data set
+	 * @return Hash map <frame number, {x, y, z, heading}>
+	 * @throws SQLException
+	 */
+	public HashMap<Integer,double[]> getFrameNumbersAndCameraCoordinatesFromDataSet(int dataSetId) throws SQLException {
+		getFrameNumbersAndCameraCoordinatesFromDataSet.setInt(1, dataSetId);
+		HashMap<Integer, double[]> coordinateMap = new HashMap<>();
+		ResultSet rs = getFrameNumbersAndCameraCoordinatesFromDataSet.executeQuery();
+		while (rs.next()) {
+			coordinateMap.put(rs.getInt(1), new double[]{rs.getDouble(2), rs.getDouble(3), rs.getDouble(4), rs.getDouble(5)});
+		}
+		return coordinateMap;
+	}
+	
 	public double [] getCameraAngles(int frameId) throws SQLException {
 		getCameraAngles.setInt(1, frameId);
 		ResultSet rs = getCameraAngles.executeQuery();
@@ -291,6 +356,24 @@ public class VideoPicturesDao {
 		try {
 			boundingPolygonsContainingPoint.setString(1, point);
 			ResultSet rs = boundingPolygonsContainingPoint.executeQuery();
+			List<int[]> frames = new ArrayList<>();
+			while (rs.next()) {
+//				System.out.println("col 1: " + rs.getInt(1) + "col 2: " + rs.getInt(2));
+				frames.add(new int[]{rs.getInt(1), rs.getInt(2)});
+			}
+			return frames;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		throw new SQLException("Unexpected error while getting frames containing a point from the database.");
+	}
+	
+	public List<int[]> getFramesContainingPoint2dFromDataSet(double x, double y, int dataSetId) throws Exception {
+		String point = postgisBuilder.point2d(x, y);
+		try {
+			boundingPolygonsContainingPointFromDataSet.setInt(1, dataSetId);
+			boundingPolygonsContainingPointFromDataSet.setString(2, point);
+			ResultSet rs = boundingPolygonsContainingPointFromDataSet.executeQuery();
 			List<int[]> frames = new ArrayList<>();
 			while (rs.next()) {
 //				System.out.println("col 1: " + rs.getInt(1) + "col 2: " + rs.getInt(2));

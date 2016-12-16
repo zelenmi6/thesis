@@ -128,7 +128,19 @@ public class OdometricAngles {
 		LinkedList<DMatch> goodMatches = new LinkedList<DMatch>();
 		MatOfDMatch gm = new MatOfDMatch();
 		
+		// filtering out matches
+		Double max_dist = 0.0;
+		Double min_dist = 100.0;
 		for (int i = 0; i < descriptorFirstImage.rows(); i++) {
+			Double dist = (double) matchesList.get(i).distance;
+			if (dist < min_dist)
+				min_dist = dist;
+			if (dist > max_dist)
+				max_dist = dist;
+		}
+		
+		for (int i = 0; i < descriptorFirstImage.rows(); i++) {
+//			if (matchesList.get(i).distance < 3*min_dist)
 			goodMatches.addLast(matchesList.get(i)); // not filtering anything
 		}
 		
@@ -154,7 +166,7 @@ public class OdometricAngles {
 		
 		Mat mask = new Mat();
 		Mat essentialMat = org.opencv.calib3d.Calib3d.findEssentialMat(firstImageMop2f, secondImageMop2f,
-				cameraMat, org.opencv.calib3d.Calib3d.RANSAC, 0.999, 3, mask);
+				cameraMat, org.opencv.calib3d.Calib3d.RANSAC, 0.999, 1, mask);
 		
 		Mat R = new Mat();
 		Mat t = new Mat();

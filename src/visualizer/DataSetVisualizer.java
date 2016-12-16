@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +35,7 @@ public class DataSetVisualizer extends Visualizer {
 		VideoPicturesDao dao = VideoPicturesDao.getInstance();
 		try {
 			List<Vector3d[]> coordinates = dao.getDataSetCoordinates(dataSetId);
+			HashMap<Integer, double[]> coordinateMap = dao.getFrameNumbersAndCameraCoordinatesFromDataSet(dataSetId);
 			Date previousTime = null;
 			Date currentTime = null;
 			long correction = 0;
@@ -41,11 +43,14 @@ public class DataSetVisualizer extends Visualizer {
 			for (Vector3d [] corners : coordinates) {
 				ParametricCameraPolygon cameraPolygon = (ParametricCameraPolygon)this.cameraPolygon;
 				cameraPolygon.setCorners(corners);
+				double[] cameraCoordinates = coordinateMap.get(step+1);
+				cameraPolygon.setDronePosition(cameraCoordinates[0], cameraCoordinates[1], cameraCoordinates[3]);
 				currentTime = new Date();
 				if (previousTime != null)
 					correction = currentTime.getTime() - previousTime.getTime();
-				System.out.println("Time: " + (int)((telemetryStartTime + step) / 60) + ":" + (telemetryStartTime + step) % 60
-						+ " correction: " + correction);
+				System.out.println("Time: " + (int)((telemetryStartTime + step * timeStep / 1000) / 60) + 
+						":" + (telemetryStartTime + step * timeStep / 1000) % 60
+						+ " correction ms: " + correction + ", frame num: " + (step+1));
 				TimeUnit.MILLISECONDS.sleep(timeStep - correction);
 				step++;
 				previousTime = new Date();

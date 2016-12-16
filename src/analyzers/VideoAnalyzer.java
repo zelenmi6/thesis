@@ -21,7 +21,7 @@ public class VideoAnalyzer {
 	public void printDataSetInformation(int dataSetId) {
 		VideoPicturesDao dao = VideoPicturesDao.getInstance();
 		try {
-			dao.getDataSetInformation(dataSetId);
+			dao.printDataSetInformation(dataSetId);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

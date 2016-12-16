@@ -28,7 +28,7 @@ public class BoundingPolygonTest {
 		System.out.println("Running test");
 		AbstractCamera camera = new Hero4Black(Hero4BlackFieldOfView.WIDE_16X9, 25);
 		VideoLoader vl = new VideoLoader("nothing yet", "C:/Users/Milan/Desktop/26.8.16 data/parsed_logs/2016_08_26_11_57_56_test.csv",
-				"Test", camera, 0);
+				"Test", camera, 0, false);
 	}
 
 }

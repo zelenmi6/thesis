@@ -28,7 +28,9 @@ import geometry.GeoLocation;
 public class VideoLoader {
 	
 	private final long TELEMETRY_INTERVAL_MS = 0;
-	private final double PITCH_OFFSET_DEGREES = -45;
+	private final double PITCH_OFFSET_DEGREES = -50;
+	private final double HEADING_OFFSET_DEGREES = -90;
+	private final double ALTITUDE_OFFSET_METERS = 2;
 //	private final double PITCH_OFFSET_DEGREES = 0;
 	
 	private AbstractCamera camera = null;
@@ -39,12 +41,15 @@ public class VideoLoader {
 	private Timestamp telemetryStartTime = null;
 	private Timestamp lastTelemetryTime = null;
 	
+	private boolean cameraFacingBack = false;
+	
 	private AreaBoundingPolygon areaBoundingPolygon;
 	
 	
 	public VideoLoader(String videoPath, String telemetryPath, String monitoredAreaName, AbstractCamera camera,
-			long telemetryStartTime) throws SQLException {
+			long telemetryStartTime, boolean cameraFacingBack) throws SQLException {
 		this.camera = camera;
+		this.cameraFacingBack = cameraFacingBack;
 		
 		try {
 			FileInputStream fs;
@@ -155,16 +160,30 @@ public class VideoLoader {
 		
 		double longitude = Double.parseDouble(tokens[2]);
 		double latitude = Double.parseDouble(tokens[1]);
+		// !TODO tohle mozna odecitat od az z konvertovanych souradnic, jinak nam vychazi zaporna altitude
+		double altitude = Double.parseDouble(tokens[3]) + ALTITUDE_OFFSET_METERS;
+		if (altitude < 0) {
+			altitude = 0;
+		}
 		Vector3d cartCoords = hw.utils.GeographyUtils.fromGPStoCart(longitude, latitude, 
-				Double.parseDouble(tokens[3]), rotationMatrix, translationVector);
+				altitude , rotationMatrix, translationVector);
 		
 		areaBoundingPolygon.addPointsToBoundingPolygon(longitude, latitude);
 		
-		return new Telemetry(new Timestamp(Long.parseLong(tokens[0]) + telemetryStartTime.getTime()),
-				cartCoords,
-				Math.toRadians(Double.parseDouble(tokens[4])),
-				Math.toRadians(Double.parseDouble(tokens[5]) + PITCH_OFFSET_DEGREES),
-				Math.toRadians(Double.parseDouble(tokens[6])));
+		if (cameraFacingBack == false) {
+			return new Telemetry(new Timestamp(Long.parseLong(tokens[0]) + telemetryStartTime.getTime()),
+					cartCoords,
+					Math.toRadians(Double.parseDouble(tokens[4])),
+					Math.toRadians(Double.parseDouble(tokens[5]) + PITCH_OFFSET_DEGREES),
+					Math.toRadians(Double.parseDouble(tokens[6]) + HEADING_OFFSET_DEGREES));
+		} else {
+			return new Telemetry(new Timestamp(Long.parseLong(tokens[0]) + telemetryStartTime.getTime()),
+					cartCoords,
+					Math.toRadians(Double.parseDouble(tokens[4]) * -1),
+					Math.toRadians((Double.parseDouble(tokens[5]) * -1 + PITCH_OFFSET_DEGREES)%360),
+					Math.toRadians((Double.parseDouble(tokens[6]) + HEADING_OFFSET_DEGREES))%360);
+		}
+		
 	}
 	
 private class AreaBoundingPolygon {
