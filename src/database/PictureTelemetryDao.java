@@ -13,6 +13,11 @@ import javax.vecmath.Vector3d;
 
 import loaders.Telemetry;
 
+/**
+ * Obsolete and no longer used.
+ * @author Milan Zelenka
+ *
+ */
 public class PictureTelemetryDao {
 	
 	private static PictureTelemetryDao instance = null;

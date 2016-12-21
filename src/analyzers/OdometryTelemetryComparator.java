@@ -10,7 +10,11 @@ import java.util.HashMap;
 import java.util.List;
 
 
-
+/**
+ * This class compares odometry from class OdometricAngles and drone's telemetry
+ * @author Milan Zelenka
+ *
+ */
 public class OdometryTelemetryComparator {
 	private List<double[]> odometry;
 	private int fps;
@@ -21,6 +25,14 @@ public class OdometryTelemetryComparator {
 	
 	private final int MILISECONDS_IN_SECOND = 1000;
 	
+	/**
+	 * 
+	 * @param odometryPath Path to serialized odometry from OdometricAngles class
+	 * @param imgPairs Indices of images to be compared
+	 * @param fps Video's fps
+	 * @throws ClassNotFoundException
+	 * @throws IOException
+	 */
 	public OdometryTelemetryComparator(String odometryPath, int[][] imgPairs, int fps) throws ClassNotFoundException, IOException {
 		this.imgPairs = imgPairs;
 		odometry = deserializeResults(odometryPath);
@@ -36,6 +48,11 @@ public class OdometryTelemetryComparator {
 		return allRotations;
 	}
 	
+	/**
+	 * Compares odometry and telemetry. Make sure the telemetry has been loaded
+	 * before running this method.
+	 * @throws Exception
+	 */
 	public void compareTelemetryOdometry() throws Exception {
 		if (telemetryLoaded == false) {
 			throw new Exception("Need to load telemetry first.");
@@ -70,6 +87,11 @@ public class OdometryTelemetryComparator {
 		
 	}
 	
+	/**
+	 * Loads a telemetry file.
+	 * @param filePath Path to the telemetry file.
+	 * @throws IOException
+	 */
 	public void loadTelemetry(String filePath) throws IOException {
 		FileInputStream fs;
 		fs = new FileInputStream(filePath);

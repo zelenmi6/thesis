@@ -21,8 +21,8 @@ import cameras.AbstractCamera;
 import loaders.Telemetry;
 
 /**
- * Not thread safe! Just for development purposes.
- * @author Milan
+ * Dao to access the spatial database. Not thread safe! Just for development purposes.
+ * @author Milan Zelenka
  *
  */
 public class VideoPicturesDao {
@@ -30,9 +30,9 @@ public class VideoPicturesDao {
 	private static VideoPicturesDao instance = null;
 	private Connection connection = null;
 	PostGISStringBuilder postgisBuilder = new PostGISStringBuilder();
-	PreparedStatement addMonitoredAreaNameOnly, getMonitoredAreaId, originSet, setOrigin, getMonitoredAreaBoundingPolygon,
+	PreparedStatement addMonitoredAreaNameOnly, getMonitoredAreaId, getOrigin, setOrigin, getMonitoredAreaBoundingPolygon,
 						saveMonitoredAreaBoundingPolygon,
-					  addDataSet, isaVideo, getDataSetInformation, getDataSetCoordinates, getFrameIdsAndFrameNumbersAndAltitudesFromDataSet,
+					  addDataSet, isaVideo, getDataSetInformation, getDataSetBoundingPolygons, getFrameIdsAndFrameNumbersAndAltitudesFromDataSet,
 					  addFrame, isaVideoFrame, getCameraCoordinates, getFrameNumbersAndCameraCoordinatesFromDataSet, getCameraAngles, boundingPolygonsContainingPoint,
 					    boundingPolygonsContainingPointFromDataSet;
 
@@ -55,7 +55,7 @@ public class VideoPicturesDao {
 
 			getMonitoredAreaId = connection.prepareStatement("SELECT id from \"MonitoredArea\" WHERE \"name\" = ?");
 
-			originSet = connection.prepareStatement("SELECT ST_AsText(origin) from \"MonitoredArea\" WHERE id = ?");
+			getOrigin = connection.prepareStatement("SELECT ST_AsText(origin) from \"MonitoredArea\" WHERE id = ?");
 			
 			getMonitoredAreaBoundingPolygon = connection.prepareStatement(
 					"SELECT ST_AsText(bounding_polygon) FROM \"MonitoredArea\" "
@@ -90,7 +90,7 @@ public class VideoPicturesDao {
 							+ "inner join \"VideoFrame\" vf on f.id = vf.frame_id) as frames on ds.id = frames.data_set_id "
 							+ "ORDER BY \"Video time\" ASC;");
 			
-			getDataSetCoordinates = connection.prepareStatement(
+			getDataSetBoundingPolygons = connection.prepareStatement(
 					"SELECT ST_AsText(bounding_polygon) poly FROM \"Frame\" "
 					+ "WHERE data_set_id = ? "
 					+ "ORDER BY id");
@@ -160,6 +160,12 @@ public class VideoPicturesDao {
 		return instance;
 	}
 
+	/**
+	 * Adds a new monitored area to the database and returns its id. If it already exists, returns its id.
+	 * @param name Name of the monitored area.
+	 * @return Id of the monitored area.
+	 * @throws SQLException
+	 */
 	public int addMonitoredArea(String name) throws SQLException {
 		addMonitoredAreaNameOnly.setString(1, name);
 		addMonitoredAreaNameOnly.setString(2, name);
@@ -169,12 +175,17 @@ public class VideoPicturesDao {
 		ResultSet rs = getMonitoredAreaId.executeQuery();
 		if (!rs.next()) {
 			throw new SQLException(
-					"Error occured while adding or retreiving MonitoredArea from the database with name: " + name);
+					"Error occured while adding or retrieving MonitoredArea from the database with name: " + name);
 		}
 		return rs.getInt(1);
 	}
 	
-	// longitude, latitude
+	/**
+	 * Get the bounding polygon of a monitored area. 
+	 * @param areaId Id of the monitored area.
+	 * @return List of vectors each representing a GPS coordinate. Its format is <longitude, latitude, 0>.
+	 * @throws SQLException
+	 */
 	public List<Vector3d> getMonitoredAreaBoundingPolygon(int areaId) throws SQLException {
 		getMonitoredAreaBoundingPolygon.setInt(1, areaId);
 		ResultSet rs = getMonitoredAreaBoundingPolygon.executeQuery();
@@ -196,16 +207,60 @@ public class VideoPicturesDao {
 		return boundingPolygon;
 	}
 	
+	/**
+	 * Updates the bounding polygon of a monitored area.
+	 * @param areaId Id of the corresponding monitored area.
+	 * @param boundingPolygon Bounding polygon, its vertices represented by a 3d vector. The z coordinate is omitted.
+	 * @throws SQLException
+	 */
 	public void saveMonitoredAreaBoundingPolygon(int areaId, Vector3d[] boundingPolygon) throws SQLException {
 		String polygon = postgisBuilder.polygo2dFrom3dVector(boundingPolygon);
 		saveMonitoredAreaBoundingPolygon.setString(1, polygon);
 		saveMonitoredAreaBoundingPolygon.setInt(2, areaId);
 		saveMonitoredAreaBoundingPolygon.executeUpdate();
 	}
+	
+	/**
+	 * Returns the origin of a monitored area
+	 * @param monitoredAreaid Id of the monitored area.
+	 * @return Origin of the monitored area. Can be null.
+	 * @throws SQLException
+	 */
+	public String getOrigin(int monitoredAreaid) throws SQLException {
+		getOrigin.setInt(1, monitoredAreaid);
+		ResultSet rs = getOrigin.executeQuery();
+		if (!rs.next()) {
+			throw new SQLException(
+					"Error occured while retrieving origin of MonitoredArea with id: " + monitoredAreaid);
+		}
+		String origin = rs.getString(1);
+		return origin;
+	}
 
-	//!TODO refactor to two separate methods for PictureSet and Video
+	/**
+	 * Sets the origin of a monitored area.
+	 * @param monitoredArea Id of the monitored area.
+	 * @param lonLatAlt Coordinates of the origin in format {longitude, latitude, altitude}
+	 * @throws SQLException
+	 */
+	public void setMonitoredAreaOrigin(int monitoredArea, double[] lonLatAlt) throws SQLException {
+		setOrigin.setString(1, postgisBuilder.point3d(lonLatAlt[0], lonLatAlt[1], lonLatAlt[2]));
+		setOrigin.setInt(2, monitoredArea);
+		setOrigin.executeUpdate();
+	}
+
+	/**
+	 * Adds a new data set. Should be refactored into separate methods for video sets and picture sets.
+	 * @param monitoredAreaid Id of the set's monitored area
+	 * @param targetPath Path to the video or the picture directory
+	 * @param camera Camera model used
+	 * @param timestamp Time of when data was taken
+	 * @param isVideo True if it is a video set.
+	 * @return
+	 * @throws Exception 
+	 */
 	public int addDataSet(int monitoredAreaid, String targetPath, AbstractCamera camera, Timestamp timestamp,
-			boolean isVideo) throws SQLException {
+			boolean isVideo) throws Exception {
 		addDataSet.setString(1, targetPath);
 		addDataSet.setInt(2, monitoredAreaid);
 		addDataSet.setTimestamp(3, timestamp);
@@ -218,16 +273,29 @@ public class VideoPicturesDao {
 		int dataSetId = rs.getInt(1);
 		if (isVideo) {
 			isaVideo(dataSetId, camera);
+		} else {
+			throw new Exception("Picture sets not implemented yet");
 		}
 		return dataSetId;
 	}
-
+	
+	/**
+	 * Specifies a data set is a video set
+	 * @param dataSetId Id of the corresponding data set
+	 * @param camera Camera model used
+	 * @throws SQLException
+	 */
 	private void isaVideo(int dataSetId, AbstractCamera camera) throws SQLException {
 		isaVideo.setInt(1, dataSetId);
 		isaVideo.setInt(2, camera.getFps());
 		isaVideo.executeUpdate();
 	}
 	
+	/**
+	 * Prints some data set's information. Used for development.
+	 * @param dataSetId Id of the data set to be printed.
+	 * @throws SQLException
+	 */
 	public void printDataSetInformation(int dataSetId) throws SQLException {
 		getDataSetInformation.setInt(1, dataSetId);
 		ResultSet rs = getDataSetInformation.executeQuery();
@@ -259,9 +327,16 @@ public class VideoPicturesDao {
 		return info;
 	}
 	
-	public List<Vector3d[]> getDataSetCoordinates(int dataSetId) throws SQLException {
-		getDataSetCoordinates.setInt(1, dataSetId);
-		ResultSet rs = getDataSetCoordinates.executeQuery();
+	/**
+	 * Gets coordinates of all frames'/pictures' bounding polygons.
+	 * @param dataSetId Id of the data set.
+	 * @return List of 3d vectors representing the coordinates of the bounding polygons' vertices.
+	 * Its format is {x, y, 0}
+	 * @throws SQLException
+	 */
+	public List<Vector3d[]> getDataSetBoundingPolygons(int dataSetId) throws SQLException {
+		getDataSetBoundingPolygons.setInt(1, dataSetId);
+		ResultSet rs = getDataSetBoundingPolygons.executeQuery();
 		List<Vector3d[]> coordinates = new ArrayList<Vector3d[]>();
 		while (rs.next()) {
 			Vector3d [] corners = new Vector3d[4]; //!TODO *** Magic number 4 ***
@@ -274,7 +349,18 @@ public class VideoPicturesDao {
 		}
 		return coordinates;
 	}
-
+	
+	/**
+	 * Adds a frame to a data set. There should be another method for batch inserts
+	 * instead of inserting each frame individually. Another one should be made for
+	 * picture sets.
+	 * @param dataSetId Id of the frame's corresponding data set.
+	 * @param telemetry Telemetry of the corresponding frame.
+	 * @param boundingPolygon Bounding polygon represented by an array of 3d vectors.
+	 * The z coordinate is set to 0 as all polygons are co-planar.
+	 * @param frameNumber
+	 * @throws SQLException
+	 */
 	public void addFrame(int dataSetId, Telemetry telemetry, Vector3d[] boundingPolygon, int frameNumber)
 			throws SQLException {
 		addFrame.setInt(1, dataSetId);
@@ -292,23 +378,24 @@ public class VideoPicturesDao {
 		isaVideoFrame(frameId, frameNumber);
 	}
 
+	/**
+	 * Makes a frame a video frame
+	 * @param frameId Id of the frame to be set
+	 * @param frameNumber Frame number in the corresponding video.
+	 * @throws SQLException
+	 */
 	private void isaVideoFrame(int frameId, int frameNumber) throws SQLException {
 		isaVideoFrame.setInt(1, frameId);
 		isaVideoFrame.setInt(2, frameNumber);
 		isaVideoFrame.executeUpdate();
 	}
-
-	public String originSet(int monitoredAreaid) throws SQLException {
-		originSet.setInt(1, monitoredAreaid);
-		ResultSet rs = originSet.executeQuery();
-		if (!rs.next()) {
-			throw new SQLException(
-					"Error occured while retrieving origin of MonitoredArea with id: " + monitoredAreaid);
-		}
-		String origin = rs.getString(1);
-		return origin;
-	}
 	
+	/**
+	 * Gets camera's Cartesian coordinates of a corresponding frame 
+	 * @param frameId Id of the queried frame.
+	 * @return Cartesian coordinates in format {x, y, z}
+	 * @throws SQLException
+	 */
 	public double [] getCameraCoordinates(int frameId) throws SQLException {
 		getCameraCoordinates.setInt(1, frameId);
 		
@@ -321,7 +408,7 @@ public class VideoPicturesDao {
 	}
 	
 	/**
-	 * Returns a map where the key is the frame number and the value are the frame's corresponding camera coordinates
+	 * Returns a map where the key is a frame number and the value are the frame's corresponding camera coordinates and heading
 	 * @param dataSetId Id of the queried data set
 	 * @return Hash map <frame number, {x, y, z, heading}>
 	 * @throws SQLException
@@ -336,6 +423,12 @@ public class VideoPicturesDao {
 		return coordinateMap;
 	}
 	
+	/**
+	 * Gets camera's rotations in all axes of a corresponding frame.
+	 * @param frameId Id of the frame.
+	 * @return Angles in format {roll, pitch, heading}
+	 * @throws SQLException
+	 */
 	public double [] getCameraAngles(int frameId) throws SQLException {
 		getCameraAngles.setInt(1, frameId);
 		ResultSet rs = getCameraAngles.executeQuery();
@@ -344,13 +437,16 @@ public class VideoPicturesDao {
 		}
 		return new double[]{rs.getDouble(1), rs.getDouble(2), rs.getDouble(3)};
 	}
-
-	public void setMonitoredAreaOrigin(int monitoredArea, double[] lonLatAlt) throws SQLException {
-		setOrigin.setString(1, postgisBuilder.point3d(lonLatAlt[0], lonLatAlt[1], lonLatAlt[2]));
-		setOrigin.setInt(2, monitoredArea);
-		setOrigin.executeUpdate();
-	}
 	
+	/**
+	 * Returns a list of frames containing a point. 
+	 * It is obsolete and should not be used since it queries all data sets regardless the monitored area.
+	 * @param x Cartesian x coordinate of the object of interest
+	 * @param y Cartesian y coordinate of the object of interest
+	 * @return List of 2-element arrays. The first element contains the frame's id,
+	 *  the second one is the frame number in the video.
+	 * @throws Exception
+	 */
 	public List<int[]> getFramesContainingPoint2d(double x, double y) throws Exception {
 		String point = postgisBuilder.point2d(x, y);
 		try {
@@ -368,6 +464,16 @@ public class VideoPicturesDao {
 		throw new SQLException("Unexpected error while getting frames containing a point from the database.");
 	}
 	
+	/**
+	 * Finds frames containing a point of interest in a given data set. 
+	 * In order to search across all data sets a new query needs to be made.
+	 * @param x Cartesian x coordinate of the object of interest
+	 * @param y Cartesian y coordinate of the object of interest
+	 * @param dataSetId Id of the data set being searched.
+	 * @return List of 2-element arrays. The first element contains the frame's id,
+	 *  the second one is the frame number in the video.
+	 * @throws Exception
+	 */
 	public List<int[]> getFramesContainingPoint2dFromDataSet(double x, double y, int dataSetId) throws Exception {
 		String point = postgisBuilder.point2d(x, y);
 		try {
@@ -386,14 +492,27 @@ public class VideoPicturesDao {
 		throw new SQLException("Unexpected error while getting frames containing a point from the database.");
 	}
 	
+	/**
+	 * Sets autocommit to true or false.
+	 * @param autocommit Defines whether autocommit is set to true or false.
+	 * @throws SQLException
+	 */
 	public void setAutocommit(boolean autocommit) throws SQLException {
 		connection.setAutoCommit(autocommit);
 	}
 	
+	/**
+	 * Commits all database operations.
+	 * @throws SQLException
+	 */
 	public void commit() throws SQLException {
 		connection.commit();
 	}
 	
+	/**
+	 * Rollbacks all database operations.
+	 * @throws SQLException
+	 */
 	public void rollback() throws SQLException {
 		connection.rollback();
 	}

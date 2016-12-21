@@ -72,6 +72,12 @@ public class PostGISStringBuilder {
 		return sb.toString();
 	}
 	
+	/**
+	 * Constructs a PostGIS polygon from an array of 3d vectors representing the polygon's vertices. 
+	 * Omits the z coordinate.
+	 * @param polygon Array of vectors representing the polygon's vertices. The z coordinate is omitted.
+	 * @return String representing a PostGIS polygon.
+	 */
 	public String polygo2dFrom3dVector(Vector3d [] polygon) {
 		sb.setLength(0);
 		sb.append("POLYGON((");

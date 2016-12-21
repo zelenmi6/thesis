@@ -47,7 +47,7 @@ public class VideoLoader {
 	
 	
 	public VideoLoader(String videoPath, String telemetryPath, String monitoredAreaName, AbstractCamera camera,
-			long telemetryStartTime, boolean cameraFacingBack) throws SQLException {
+			long telemetryStartTime, boolean cameraFacingBack) throws Exception {
 		this.camera = camera;
 		this.cameraFacingBack = cameraFacingBack;
 		
@@ -131,7 +131,7 @@ public class VideoLoader {
 	}
 	
 	private void setRotationMatrixAndTranslationVector(int monitoredAreaId, double [] lonLatAlt) throws SQLException {
-		String origin = dao.originSet(monitoredAreaId);
+		String origin = dao.getOrigin(monitoredAreaId);
 		if (origin == null) {
 			// set new rotation matrix and translation vector and save origin to the database
 			dao.setMonitoredAreaOrigin(monitoredAreaId, lonLatAlt);

@@ -35,7 +35,6 @@ import tests.VisualTelemetryTest;
 import video.FrameGrabber;
 import video.OpenCVGrabber;
 import video.TransformEstimate;
-import videoVisualizer.VideoVisualizer;
 import visualizer.DataSetVisualizer;
 import visualizer.Visualizer;
 
@@ -64,8 +63,12 @@ public class Main {
 //		VideoAnalyzer va = new VideoAnalyzer();
 //		va.setRotationMatrixAndTranslationVector(14.1209483, 50.070355, 0);
 //		va.testConversion(new Vector3d(14.120762, 50.070322, 4));
+//		int[][] intervalsOnScreen = new int[][]
+//				{{1390, 1601}, {1661, 2011}, {2291, 2421}, {2541, 2611}, {2701, 2751}, {2831, 2881}, {2891, 2951}};
+//		int[][] intervalsOnScreenRectified = new int[][]
+//				{{1401, 1601}, {1661, 1791}, {1801, 2011}, {2301, 2311}, {2391, 2411}, {2541, 2551}, {2571, 2601}, {2701, 2751}, {2831, 2871}, {2901, 2941}};
 //		AltitudeErrorTest aet = new AltitudeErrorTest();
-//		aet.polygonsContainingPoint(-13.294068549350916, 3.6692342889354252, 4., 88, 91, 90);
+//		aet.polygonsContainingPoint(-13.294068549350916, 3.6692342889354252, 4., 88, 90, 91, intervalsOnScreenRectified);
 		
 		//Test 2
 //		VideoAnalyzer va = new VideoAnalyzer();
@@ -74,8 +77,14 @@ public class Main {
 //		va.testConversion(new Vector3d(14.12075735, 50.07039369, 4));
 //		Calculations.getFramesWithPoint(-5.153951485404552, -9.721579921488562, 3.8387163984930255, 126);
 //		Calculations.getFramesWithPoint(-5.547175031803819, -11.581271490751064, 3.8387163984930255, 126);
-//		AltitudeErrorTest aet = new AltitudeErrorTest();
-//		aet.polygonsContainingPoint(-5.153951485404552, -9.721579921488562, 3.8387163984930255, 131, 132, 129);
+//		int[][] intervalsOnScreenRectifiedTest2 = new int[][]
+//				{{410, 1015}, {1125, 1160}, {1170, 1385}, {1450, 1515}, {1545, 1555}, {1680, 1710}, {2145, 2310}, {2640, 2695},
+//				{2795, 2850}, {2930, 3315}, {3445, 4025}, {4090, 4195}, {4220, 4560}, {4590, 4620}, {5455, 5520}, {5715, 5965}, 
+//				{6060, 6115}, {6225, 6265}, {6345, 6400}, {6465, 6715}};
+//		AbstractCamera undistortedCamera = new Hero4BlackUndistorted(Hero4BlackUndistortedFieldOfView.WIDE_16X9, 25);
+//		AbstractCamera distortedCamera = new Hero4Black(Hero4BlackFieldOfView.WIDE_16X9, 25);
+//		AltitudeErrorTest aet = new AltitudeErrorTest(undistortedCamera);
+//		aet.polygonsContainingPoint(-5.153951485404552, -9.721579921488562, 3.8387163984930255, 133, 134, 135, intervalsOnScreenRectifiedTest2);
 		
 //		va.printDataSetInformation(30);
 //		va.printGpsOfCamera(47145); // frame 1800
@@ -83,14 +92,14 @@ public class Main {
 		
 
 		
-		DataSetVisualizer v = new DataSetVisualizer();
-		JFrame frame = new JFrame("Visualizer");
-		frame.setContentPane(v);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.pack();
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
-		v.visualizeDataSet(133, 40, 0);
+//		DataSetVisualizer v = new DataSetVisualizer();
+//		JFrame frame = new JFrame("Visualizer");
+//		frame.setContentPane(v);
+//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//		frame.pack();
+//		frame.setLocationRelativeTo(null);
+//		frame.setVisible(true);
+//		v.visualizeDataSet(133, 40, 0);
 		
 		
 //		Visualizer v = new Visualizer();

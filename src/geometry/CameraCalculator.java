@@ -8,13 +8,19 @@ import javax.vecmath.Vector4d;
 import Jama.Matrix;
 import constants.CameraTesting;
 
+/**
+ * This class provides static methods used for calculations related to cameras.
+ * @author Milan Zelenka
+ *
+ */
 public class CameraCalculator {
 	
 	public final static Vector3d AXES_ORIGIN = new Vector3d(0, 0, 0);
 	
 	/**
-	 * Get corners of the polygon captured by the camera. 
-	 * The points are not yet translated to camera's X-Y coordinates.
+	 * Get corners of the polygon captured by the camera on the ground. 
+	 * The calculations are performed in the axes origin (0, 0, altitude)
+	 * and the points are not yet translated to camera's X-Y coordinates.
 	 * @param FOVh Horizontal field of view in radians
 	 * @param FOVv Vertical field of view in radians
 	 * @param altitude Altitude of the camera in meters
@@ -47,21 +53,25 @@ public class CameraCalculator {
 		return intersections;
 	}
 	
+	/**
+	 * Checks whether a point lies inside the frustum approximated 
+	 * by a pyramid defining the camera's field of view.
+	 * @param rays Array of four ray-vectors defining the edges of the pyramid
+	 * @param cameraPosition Camera's Cartesian coordinates
+	 * @param point
+	 * @return
+	 */
 	public static boolean pointIsInsidePyramid(Vector3d [] rays, Vector3d cameraPosition, Vector3d point) {
 		Vector3d [] normVectors = new Vector3d[rays.length];
 		Vector4d [] planes = new Vector4d[rays.length];
+		
+		// create 4 norm vectors of planes defining the pyramid's sides
 		for (int i = 0; i < rays.length; i ++) {
 			normVectors[i] = Calculations.getPlaneNormVector(translatePointFromAxesOriginToCamera(rays[i], cameraPosition),
 					translatePointFromAxesOriginToCamera(rays[(i+1)%rays.length], cameraPosition), cameraPosition);
-//			planes[i] = Calculations.getEquationOfAPlane(translatePointFromAxesOriginToCamera(rays[i], cameraPosition),
-//					translatePointFromAxesOriginToCamera(rays[(i+1)%rays.length], cameraPosition), cameraPosition);
-//			printPlaneForWolfram(planes[i], "f" + i);
 		}
-//		Vector3d cameraCenter = new Vector3d(planes[0].x + planes[1].x + planes[2].x + planes[3].x,
-//				planes[0].y + planes[1].y + planes[2].y + planes[3].y,
-//				planes[0].z + planes[1].z + planes[2].z + planes[3].z);
-//		System.out.println("Camera center: \n" + cameraCenter.toString());
-		
+		// check the distance of the point of interest and the pyramid's sides
+		// if all the values are positive, the point of interest lies inside the pyramid
 		for (int i = 0; i < normVectors.length; i ++) {
 			if (Calculations.getPointPlaneDistance(normVectors[i], cameraPosition, point) > 0) {
 				return false;
@@ -77,6 +87,15 @@ public class CameraCalculator {
 		System.out.println(sb.toString());
 	}
 	
+	/**
+	 * Finds the intersections of the camera's ray-vectors 
+	 * and the ground approximated by a horizontal plane
+	 * @param rays Array of 4 ray-vectors
+	 * @param origin Position of the camera. The computation were developed 
+	 * assuming the camera was at the axes origin (0, 0, altitude) and the 
+	 * results translated by the camera's real position afterwards.
+	 * @return
+	 */
 	private static Vector3d [] getRayGroundIntersections(Vector3d [] rays, Vector3d origin) {
 		Vector3d [] intersections = new Vector3d[rays.length];
 		for (int i = 0; i < rays.length; i ++) {
@@ -107,11 +126,19 @@ public class CameraCalculator {
 		}
 	}
 	
+	/**
+	 * Limits the camera's distance of view given by a constant. 
+	 * This constant defines the total length of the ray-vector.
+	 * @param intersection Original incorrect intersections that are to be changed
+	 * @param rotatedVector Rotated ray-vectors
+	 */
 	private static void limitDistanceOfView(Vector3d intersection, Vector3d rotatedVector) {
 		intersection.x = rotatedVector.x * CameraTesting.MAX_DISTANCE;
 		intersection.y = rotatedVector.y * CameraTesting.MAX_DISTANCE;
 	}
 	
+	// Ray-vectors defining the the camera's field of view. FOVh and FOVv are interchangeable
+	// depending on the camera's orientation
 	public static Vector3d ray1(double FOVh, double FOVv) {
 		Vector3d ray = new Vector3d(Math.tan(FOVv/2), Math.tan(FOVh/2), -1);
 		ray.normalize();
@@ -135,6 +162,7 @@ public class CameraCalculator {
 		ray.normalize();
 		return ray;
 	}
+	/////////////////////////////////////////////////////////////////////////////////////////
 	
 	public static void printDirections(Vector3d ray1,Vector3d ray2, Vector3d ray3, Vector3d ray4) {
 		System.out.println("(" + ray1.x + ", " + ray1.y + ", " + ray1.z + ")");
@@ -150,6 +178,17 @@ public class CameraCalculator {
 		System.out.println("(" + ray4.x + ", " + ray4.z + ", " + ray4.y + ")");
 	}
 	
+	/**
+	 * Rotates the four ray-vectors around all 3 axes
+	 * @param ray1 First ray-vector
+	 * @param ray2 Second ray-vector
+	 * @param ray3 Third ray-vector
+	 * @param ray4 Fourth ray-vector
+	 * @param roll Roll rotation
+	 * @param pitch Pitch rotation
+	 * @param yaw Yaw rotation
+	 * @return Returns new rotated ray-vectors
+	 */
 	public static Vector3d[] rotateRays(Vector3d ray1,Vector3d ray2, Vector3d ray3, Vector3d ray4, double roll, double pitch, double yaw) {
 		double sinAlpha = Math.sin(yaw);
 		double sinBeta = Math.sin(pitch);
@@ -200,6 +239,12 @@ public class CameraCalculator {
 		System.out.println("Yaw: " + Math.toDegrees(z));
 	}
 	
+	/**
+	 * Finds a ray-vector's intersection with the ground approximated by a plane
+	 * @param ray Ray-vector
+	 * @param origin Camera's position
+	 * @return
+	 */
 	public static Vector3d findRayGroundIntersection(Vector3d ray, Vector3d origin) {
 		
 		// Parametric form of an equation
@@ -219,6 +264,7 @@ public class CameraCalculator {
 	}
 	
 	/**
+	 * !TODO not tested, not used anymore
 	 * Calculates points of intersection of camera rays and a plane perpendicular to vector (origin, pointOfInterest)
 	 * passing through pointOfInterest.
 	 * @param rays Camera rays
@@ -257,10 +303,8 @@ public class CameraCalculator {
 				System.out.print("Octant changed, ");
 				Vector3d middle = getRayInTheMiddle(rays);
 				Vector3d pointAlongMiddle = Calculations.findPointAlongVectorAtDistance(middle, CameraTesting.MAX_DISTANCE);
-				//!TODO zkontrolovat, zdali je ok davat jako origin vzdy (0,0,0)
 				Vector4d viewLimitingPlane = Calculations.getEquationOfAPlane(AXES_ORIGIN, pointAlongMiddle);
 				Vector3d pointOnRay = Calculations.findPlaneVectorIntersection(viewLimitingPlane, rays[i], AXES_ORIGIN);
-				//!TODO projekce na plosinu
 				System.out.print("");
 			}
 			System.out.println("x: " + intersections[i].x + ", y: " + intersections[i].y + ", z:" + intersections[i].z);
@@ -274,6 +318,12 @@ public class CameraCalculator {
 		return intersections;
 	}
 	
+	/**
+	 * Finds a vector, which is in the "center of mass" 
+	 * of all the vectors given by the method's parameter.
+	 * @param rays Rays to find the center of mass off.
+	 * @return
+	 */
 	private static Vector3d getRayInTheMiddle(Vector3d [] rays) {
 		if (rays.length == 0) {
 			return null;
@@ -325,6 +375,14 @@ public class CameraCalculator {
 				pointToTranslate.z + cameraPosition.z);
 	}
 	
+	////////////////////////////////////////////// HIC SUNT LEONES //////////////////////////////////////////////
+	//// All methods below are no longer used and are obsolete. Make sure they are correct before using them ////
+	
+	/**
+	 * Not used, not tested.
+	 * @param vector
+	 * @param origin
+	 */
 	public static void findVectorVerticalPlaneIntersection(Vector3d vector, Vector3d origin) {
 		// Parametric form of an equation
 		// P = origin + vector * t

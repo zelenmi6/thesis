@@ -14,28 +14,64 @@ import cameras.Hero4BlackUndistorted.Hero4BlackUndistortedFieldOfView;
 import database.VideoPicturesDao;
 import geometry.CameraCalculator;
 
+/**
+ * This class serves as a comparator between three different data sets
+ * that are identical except for the altitude used for their computations.
+ * The purpose is to find out which altitude is the most correct for
+ * the purposes of video mapping. The original idea is to compare the 
+ * real (altitude from sensors) altitude to a lower and a higher altitude.
+ * @author Milan Zelenka
+ *
+ */
 public class AltitudeErrorTest {
 	
 	VideoPicturesDao dao = VideoPicturesDao.getInstance();
+	AbstractCamera camera;
 	
-	
-	public AltitudeErrorTest() throws Exception {
-
+	/**
+	 * Constructor
+	 * @param camera Camera model used
+	 * @throws Exception
+	 */
+	public AltitudeErrorTest(AbstractCamera camera) throws Exception {
+		this.camera = camera;
 	}
 	
-	public void polygonsContainingPoint(double x, double y, double z, 
-			int dataSetLowerId, int dataSetHigherId, int realDataSetId) throws Exception {
-		AbstractCamera undistortedCamera = new Hero4BlackUndistorted(Hero4BlackUndistortedFieldOfView.WIDE_16X9, 25);
-		AbstractCamera distortedCamera = new Hero4Black(Hero4BlackFieldOfView.WIDE_16X9, 25);
-		List<int[]> frames2dSmaller = dao.getFramesContainingPoint2dFromDataSet(x, y, dataSetLowerId); 
+	/**
+	 * 
+	 * @param x Cartesian x coordinate of the object of interest
+	 * @param y Cartesian y coordinate of the object of interest
+	 * @param z Cartesian z coordinate of the object of interest
+	 * @param dataSetLowerId Id of a data set with its altitude lower than the altitude from sensors
+	 * @param realDataSetId Id of a data set with the altitude from sensors
+	 * @param dataSetHigherId Id of a data set with its altitude higher than the altitude from sensors
+	 * @param intervalsOnScreen a 2d array of frame intervals when the object of interest is visible
+	 * @throws Exception
+	 */
+	public void polygonsContainingPoint(double x, double y, double z,
+			int dataSetLowerId, int realDataSetId, int dataSetHigherId, int[][] intervalsOnScreen) throws Exception {
+		List<int[]> frames2dSmaller = dao.getFramesContainingPoint2dFromDataSet(x, y, dataSetLowerId);
+		List<int[]> frames2dReal = dao.getFramesContainingPoint2dFromDataSet(x, y, realDataSetId);
 		List<int[]> frames2dBigger = dao.getFramesContainingPoint2dFromDataSet(x, y, dataSetHigherId);
 		
-		List<int[]> framesSmallerContaining = getFramesContainingPoint3d(x, y, z, frames2dSmaller, undistortedCamera);
-		List<int[]> framesBiggerContaining = getFramesContainingPoint3d(x, y, z, frames2dBigger, undistortedCamera);
-		printResults(framesSmallerContaining, framesBiggerContaining);
-//		printResultsForWolfram(framesSmallerContaining, framesBiggerContaining, realDataSetId);
+		List<int[]> framesSmallerContaining = getFramesContainingPoint3d(x, y, z, frames2dSmaller, camera);
+		List<int[]> framesRealContaining = getFramesContainingPoint3d(x, y, z, frames2dReal, camera);
+		List<int[]> framesBiggerContaining = getFramesContainingPoint3d(x, y, z, frames2dBigger, camera);
+//		printResults(framesSmallerContaining, framesBiggerContaining);
+		printResultsForWolfram(framesSmallerContaining, framesRealContaining, framesBiggerContaining, realDataSetId, intervalsOnScreen);
 	}
 	
+	/**
+	 * Computes all frames containing a point of interest
+	 * @param x Cartesian x coordinate of the object of interest
+	 * @param y Cartesian y coordinate of the object of interest
+	 * @param z Cartesian z coordinate of the object of interest
+	 * @param frames2d List of 2-element int arrays representing frames in the database. 
+	 * The first element of the array contains the id of the frame, the second one its frame number in the vido.
+	 * @param camera Camera model used.
+	 * @return
+	 * @throws SQLException
+	 */
 	private List<int[]> getFramesContainingPoint3d(double x, double y, double z,
 													List<int[]> frames2d, AbstractCamera camera) throws SQLException {
 		List<int[]> framesContainingPoint = new ArrayList<>();
@@ -82,58 +118,61 @@ public class AltitudeErrorTest {
 		}
 	}
 	
-	private void printResultsForWolfram(List<int[]> framesSmallerContaining, 
-			List<int[]> framesBiggerContaining, int realDataSetId)
+	// Prints output lists for Wolfram Mathematica charts
+	private void printResultsForWolfram(List<int[]> framesSmallerContaining, List<int[]> framesRealContaining,
+			List<int[]> framesBiggerContaining, int realDataSetId, int [][] intervalsOnScreen)
 			throws Exception {
-		int firstFrameNum = framesBiggerContaining.get(0)[1];
 		int lastFrameNum = framesBiggerContaining.get(framesBiggerContaining.size()-1)[1];
-//		List<Integer> ids = dao.getDataSetFrameIds(dataSetId);
-//		dao.printDataSetInformation(88);
 		List<double[]> dsInfo = dao.getFrameIdsAndFrameNumbersAndAltitudesFromDataSet(realDataSetId);
 		
 		StringBuilder altitudeSeries = new StringBuilder(1000);
 		StringBuilder innerContainingSeries = new StringBuilder(1000);
+		StringBuilder realContainingSeries = new StringBuilder(1000);
 		StringBuilder outerContainingSeries = new StringBuilder(1000);
 		StringBuilder onScreen = new StringBuilder(1000);
 		
-		String[] names = new String[]{"altitude", "inner", "outer", "onscreen"};
+		String[] names = new String[]{"altitude", "inner", "real", "outer", "onscreen"};
 		
 		altitudeSeries.append(names[0]).append(" = {");
 		innerContainingSeries.append(names[1]).append(" = {");
-		outerContainingSeries.append(names[2]).append(" = {");
-		onScreen.append(names[3]).append(" = {");
+		realContainingSeries.append(names[2]).append(" = {");
+		outerContainingSeries.append(names[3]).append(" = {");
+		onScreen.append(names[4]).append(" = {");
 		
-		int[][] intervalsOnScreen = new int[][]
-				{{1390, 1601}, {1661, 2011}, {2291, 2421}, {2541, 2611}, {2701, 2751}, {2831, 2881}, {2891, 2951}};
-		int[][] intervalsOnScreenRectified = new int[][]
-				{{1401, 1601}, {1661, 1791}, {1801, 2011}, {2301, 2311}, {2391, 2411}, {2541, 2551}, {2571, 2601}, {2701, 2751}, {2831, 2871}, {2901, 2941}};
-		
+				
 		for (int i = 0; i < lastFrameNum; i ++) {
 			altitudeSeries.append(getWolframPair(i, dsInfo.get(i)[2])).append(", ");
 			if (list2DContains(framesSmallerContaining, 1, i)) {
-				innerContainingSeries.append(getWolframPair(i, 14.8)).append(", ");
+				innerContainingSeries.append(getWolframPair(i, 1.3)).append(", ");
 			} else {
 				innerContainingSeries.append("{").append(i).append(", None}, ");
 			}
 			if (list2DContains(framesBiggerContaining, 1, i)) {
-				outerContainingSeries.append(getWolframPair(i, 15)).append(", ");
+				outerContainingSeries.append(getWolframPair(i, 1.7)).append(", ");
 			} else {
 				outerContainingSeries.append("{").append(i).append(", None}, ");
 			}
-			if (intervalsContain(intervalsOnScreenRectified, i)) {
-				onScreen.append("{").append(i).append(", 14}, ");
+			if (list2DContains(framesRealContaining, 1, i)) {
+				realContainingSeries.append(getWolframPair(i, 1.5)).append(", ");
 			} else {
-				onScreen.append("{").append(i).append(", 13}, ");
+				realContainingSeries.append("{").append(i).append(", None}, ");
+			}
+			if (intervalsContain(intervalsOnScreen, i)) {
+				onScreen.append("{").append(i).append(", 2}, ");
+			} else {
+				onScreen.append("{").append(i).append(", 1}, ");
 			}
 		}
-//		altitudeSeries.deleteCharAt(altitudeSeries.length()-2).append("};");
-//		innerContainingSeries.deleteCharAt(innerContainingSeries.length()-2).append("};");
-//		outerContainingSeries.deleteCharAt(outerContainingSeries.length()-2).append("};");
+		altitudeSeries.deleteCharAt(altitudeSeries.length()-2).append("};");
+		innerContainingSeries.deleteCharAt(innerContainingSeries.length()-2).append("};");
+		realContainingSeries.deleteCharAt(realContainingSeries.length()-2).append("};");
+		outerContainingSeries.deleteCharAt(outerContainingSeries.length()-2).append("};");
 		onScreen.deleteCharAt(onScreen.length()-2).append("};");
 		
 //		System.out.println(generateSeries(altitudeSeries));
-//		System.out.println(generateSeries(innerContainingSeries));
-//		System.out.println(generateSeries(outerContainingSeries));
+		System.out.println(generateSeries(innerContainingSeries));
+		System.out.println(generateSeries(realContainingSeries));
+		System.out.println(generateSeries(outerContainingSeries));
 		System.out.println(generateSeries(onScreen));
 //		printSeries(names);
 	}

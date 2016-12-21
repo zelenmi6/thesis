@@ -17,14 +17,17 @@ import database.VideoPicturesDao;
 
 public class Calculations {
 	
-	public static void getFramesWithPoint(double x, double y, double z) throws Exception {
+	/**
+	 * Obsolete and no longer used. Use getFramesWithPoint that specifies the data set to search in.
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @throws Exception
+	 */
+	public static void getFramesWithPoint(double x, double y, double z, int fps) throws Exception {
 		VideoPicturesDao dao = VideoPicturesDao.getInstance();
 		List<int[]> frames2d = dao.getFramesContainingPoint2d(x, y);
 		AbstractCamera camera = new Hero4BlackUndistorted(Hero4BlackUndistortedFieldOfView.WIDE_16X9, 25);
-//		List<double[]> intervals = geometry.Calculations.getContinuousIntervalsInSortedList(frames);
-//		for (double [] interval : intervals) {
-//			System.out.println("Interval: " + interval[0] + ", " + interval[1]);
-//		}
 		List<int[]> framesWithPoint = new ArrayList<>();
 		for (int[] frame : frames2d) {
 			double [] coordinates, angles;
@@ -42,15 +45,26 @@ public class Calculations {
 					rotatedVectors, new Vector3d(coordinates[0], coordinates[1], coordinates[2]),
 					new Vector3d(x, y, z));
 			if (inside) {
-				System.out.println("Inside, frame id: " + frame[0] + " frame num: " + frame[1] + " time: " + frameToTime(frame[1]));
+				System.out.println("Inside, frame id: " + frame[0] + " frame num: " + frame[1] + " time: " + frameToTime(frame[1], fps));
 			} else {
-				System.out.println("Outside, frame id: " + frame[0] + " frame num: " + frame[1] + " time: " + frameToTime(frame[1]));
+				System.out.println("Outside, frame id: " + frame[0] + " frame num: " + frame[1] + " time: " + frameToTime(frame[1], fps));
 			}
 		}
 	}
 	
-	// !TODO refactor, almost duplicate method
-	public static void getFramesWithPoint(double x, double y, double z, int dataSetId) throws Exception {
+	/**
+	 * Finds frames containing a point given by Cartesian coordinates in a data set.
+	 * Used for purposes of testing when we know the Cartesian coordinates.
+	 * In a real scenario, we would use GPS coordinates, find corresponding
+	 * Monitored Areas, use their origin for GPS-cartesian conversion and then
+	 * use this or a similar method to find the frames.
+	 * @param x Cartesian x coordinate of the point of interest
+	 * @param y Cartesian y coordinate of the point of interest
+	 * @param z Cartesian z coordinate of the point of interest
+	 * @param dataSetId Id of the data set to search in
+	 * @throws Exception
+	 */
+	public static void getFramesWithPoint(double x, double y, double z, int dataSetId, int fps) throws Exception {
 		VideoPicturesDao dao = VideoPicturesDao.getInstance();
 		List<int[]> frames2d = dao.getFramesContainingPoint2dFromDataSet(x, y, dataSetId);
 		AbstractCamera camera = new Hero4BlackUndistorted(Hero4BlackUndistortedFieldOfView.WIDE_16X9, 25);
@@ -75,25 +89,31 @@ public class Calculations {
 					rotatedVectors, new Vector3d(coordinates[0], coordinates[1], coordinates[2]),
 					new Vector3d(x, y, z));
 			if (inside) {
-				System.out.println("Inside, frame id: " + frame[0] + " frame num: " + frame[1] + " time: " + frameToTime(frame[1]));
+				System.out.println("Inside, frame id: " + frame[0] + " frame num: " + frame[1] + " time: " + frameToTime(frame[1], fps));
 			} else {
-				System.out.println("Outside, frame id: " + frame[0] + " frame num: " + frame[1] + " time: " + frameToTime(frame[1]));
+				System.out.println("Outside, frame id: " + frame[0] + " frame num: " + frame[1] + " time: " + frameToTime(frame[1], fps));
 			}
 		}
 	}
 	
-	private static int frameToMinutes(int frameNum) {
-		return frameNum / 25 / 60;
+	private static int frameToMinutes(int frameNum, int fps) {
+		return frameNum / fps / 60;
 	}
 	
-	private static int frameToSeconds(int frameNum) {
-		return frameNum / 25 % 60;
+	private static int frameToSeconds(int frameNum, int fps) {
+		return frameNum / fps % 60;
 	}
 	
-	private static String frameToTime(int frameNum) {
-		return frameToMinutes(frameNum) + ":" + frameToSeconds(frameNum);
+	private static String frameToTime(int frameNum, int fps) {
+		return frameToMinutes(frameNum, fps) + ":" + frameToSeconds(frameNum, fps);
 	}
 	
+	/**
+	 * Finds all continuous intervals of numbers in a sorted list.
+	 * @param numbers Sorted list of array numbers. 
+	 * Uses the second arrays' elements to find intervals.
+	 * @return List of arrays containing new intervals.
+	 */
 	public static List<double[]> getContinuousIntervalsInSortedList(List<int[]> numbers) {
 		List<double[]> intervals = new ArrayList<>();
 		int startOfInterval = numbers.get(0)[1];
@@ -109,6 +129,7 @@ public class Calculations {
 		return intervals;
 	}
 	
+	// Not tested
 	public static Vector4d getEquationOfAPlane(Vector3d origin, Vector3d point) {
 		// Find the equation of the plane ax + by + cz - d == 0;
 		Vector3d normVector = new Vector3d(point.x - origin.x, point.y - origin.y, point.z - origin.z);
@@ -116,12 +137,25 @@ public class Calculations {
 		return new Vector4d(normVector.x, normVector.y, normVector.z, -d);
 	}
 	
+	/**
+	 * Finds an equation of a plane given by three points
+	 * @param points Vector of three points
+	 * @return Equation of a plane in format {ax, by, cz, -d}
+	 * @throws Exception
+	 */
 	public static Vector4d getEquationOfAPlane(Vector3d [] points) throws Exception {
 		if (points.length < 3)
 			throw new Exception("Not enough points in the array. A plane needs at least 3 points to be constructed.");
 		return getEquationOfAPlane(points[0], points[1], points[2]);
 	}
 	
+	/**
+	 * Finds an equation of a plane given by three points
+	 * @param a First point
+	 * @param b Second point
+	 * @param c Third point
+	 * @return Equation of a plane in format {ax, by, cz, -d}
+	 */
 	public static Vector4d getEquationOfAPlane(Vector3d a, Vector3d b, Vector3d c) {
 		// Find the equation of the plane ax + by + cz - d == 0;
 		Vector3d normVector = getPlaneNormVector(a, b, c);
@@ -129,12 +163,25 @@ public class Calculations {
 		return new Vector4d(normVector.x, normVector.y, normVector.z, -d);
 	}
 	
+	/**
+	 * Returns plane's norm vector given by the plane's three points
+	 * @param points Plane's three points
+	 * @return Plane's norm vector
+	 * @throws Exception
+	 */
 	public static Vector3d getPlaneNormVector(Vector3d [] points) throws Exception {
 		if (points.length < 3)
 			throw new Exception("Not enough points in the array. A plane needs at least 3 points to be constructed.");
 		return getPlaneNormVector(points[0], points[1], points[2]);
 	}
 	
+	/**
+	 * Returns plane's norm vector given by the plane's three points
+	 * @param a First plane's point
+	 * @param b Second plane's point
+	 * @param c Third plane's point
+	 * @return Plane's norm vector
+	 */
 	public static Vector3d getPlaneNormVector(Vector3d a, Vector3d b, Vector3d c) {
 		Vector3d planeVector1 = new Vector3d(b.x - a.x, b.y - a.y, b.z - a.z);
 		Vector3d planeVector2 = new Vector3d(c.x - a.x, c.y - a.y, c.z - a.z);

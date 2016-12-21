@@ -34,7 +34,7 @@ public class DataSetVisualizer extends Visualizer {
 	public void visualizeDataSet(int dataSetId, int timeStep, int telemetryStartTime) {
 		VideoPicturesDao dao = VideoPicturesDao.getInstance();
 		try {
-			List<Vector3d[]> coordinates = dao.getDataSetCoordinates(dataSetId);
+			List<Vector3d[]> coordinates = dao.getDataSetBoundingPolygons(dataSetId);
 			HashMap<Integer, double[]> coordinateMap = dao.getFrameNumbersAndCameraCoordinatesFromDataSet(dataSetId);
 			Date previousTime = null;
 			Date currentTime = null;

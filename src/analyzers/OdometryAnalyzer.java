@@ -9,6 +9,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * This class outputs odometry from class OdometricAngles 
+ * in Wolfram Mathematica format for analysis.
+ * @author Milan Zelenka
+ *
+ */
 public class OdometryAnalyzer {
 	private List<double[]> odometry;
 	private long timeStepMs;

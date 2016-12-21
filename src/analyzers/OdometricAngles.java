@@ -30,6 +30,13 @@ import org.opencv.imgproc.Imgproc;
 
 import video.Imshow;
 
+/**
+ * This class can find out camera movement between two images or sets of two images.
+ * Images have to be numbered in format [0-9]+.{suffix} where suffix is e.g. jpg, png, ....
+ * Results are to be serialized and used elsewhere.
+ * @author Milan Zelenka
+ *
+ */
 public class OdometricAngles {
 	static{ System.loadLibrary("libopencv_java310"); }
 	private FeatureDetector featureDetector = FeatureDetector.create(FeatureDetector.SURF);
@@ -43,6 +50,12 @@ public class OdometricAngles {
 	private Mat distortionCoefficients = new Mat(1, 5, CvType.CV_32F);
 	Mat cameraMat = new Mat(3, 3, 6);
 	
+	/**
+	 * Directory with the images to be used for odometric calculations.
+	 * @param directory Directory path
+	 * @param suffix Suffix of image files e.g. jpg, png, ...
+	 * @throws Exception
+	 */
 	public OdometricAngles(String directory, String suffix) throws Exception{
 		this.directory = directory;
 		this.suffix = "." + suffix;
@@ -81,6 +94,11 @@ public class OdometricAngles {
 		}
 	}
 	
+	/**
+	 * Runs calculations between all pairs of elements in the array parameter
+	 * @param imgPairs Array of image couples
+	 * @throws Exception
+	 */
 	public void runCalculationPairs(int[][] imgPairs) throws Exception {
 		allRotations = new ArrayList<>();
 		
@@ -215,6 +233,11 @@ public class OdometricAngles {
 		ims.showImage(imgMatches);
 	}
 	
+	/**
+	 * Saves the results in a file in the same directory as where the images are taken from.
+	 * @param filename Name of the new file
+	 * @throws IOException
+	 */
 	public void serializeResults(String filename) throws IOException {
 		FileOutputStream fileOut = new FileOutputStream(directory + filename);
 		ObjectOutputStream out = new ObjectOutputStream(fileOut);

@@ -9,6 +9,12 @@ import javax.vecmath.Vector3d;
 
 import database.VideoPicturesDao;
 
+/**
+ * Class used for development. Tests conversions from GPS to Cartesian coordinates and back.
+ * Method names should be self-explanatory.
+ * @author Milan
+ *
+ */
 public class VideoAnalyzer {
 	
 	private GMatrix rotationMatrix = null;

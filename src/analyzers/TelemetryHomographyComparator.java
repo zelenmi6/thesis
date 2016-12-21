@@ -19,6 +19,11 @@ import loaders.Telemetry;
 import video.FrameGrabber;
 import video.TransformEstimate;
 
+/**
+ * Obsolote, can be deleted
+ * @author Milan
+ *
+ */
 public class TelemetryHomographyComparator {
 	HashMap<Long, Telemetry> telemetryMap = new HashMap<Long, Telemetry>();
 	FrameGrabber fg;
